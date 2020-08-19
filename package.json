@@ -1,0 +1,22 @@
+{
+    "name": "mpm",
+    "version": "1.0.0",
+    "description": "A package manager for Minecraft",
+    "main": "index.js",
+    "scripts": {},
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/fredluetkemeier/mpm.git"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/fredluetkemeier/mpm/issues"
+    },
+    "homepage": "https://github.com/fredluetkemeier/mpm#readme",
+    "dependencies": {
+        "graphql": "^15.3.0",
+        "node-fetch": "^2.6.0"
+    }
+}
