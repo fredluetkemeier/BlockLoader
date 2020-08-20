@@ -103,7 +103,7 @@ const FileType = new GraphQLObjectType({
         minecraftVersion: {
             type: GraphQLString,
             resolve: (file) => {
-                const [newest, ...rest] = file.sortableGameVersion
+                const [newest] = file.sortableGameVersion
                     .sort((a, b) => {
                         const timestampA = toPosixTime(a);
                         const timestampB = toPosixTime(b);
