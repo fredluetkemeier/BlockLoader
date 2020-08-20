@@ -1,47 +1,11 @@
 const fetch = require('node-fetch');
-const {
-    GraphQLSchema,
-    GraphQLObjectType,
-    GraphQLString,
-    GraphQLList,
-} = require('graphql');
-
-const ModType = new GraphQLObjectType({
-    name: 'Mod',
-    description: 'A minecraft mod',
-
-    fields: () => ({
-        id: {
-            type: GraphQLString,
-            resolve: (mod) => mod.id,
-        },
-        name: {
-            type: GraphQLString,
-            resolve: (mod) => mod.name,
-        },
-        authors: {
-            type: GraphQLList(AuthorType),
-            resolve: (mod) => mod.authors,
-        },
-    }),
-});
-
-const AuthorType = new GraphQLObjectType({
-    name: 'Author',
-    description: 'The author of a mod',
-
-    fields: () => ({
-        name: {
-            type: GraphQLString,
-            resolve: (author) => author.name,
-        },
-    }),
-});
+const { GraphQLSchema, GraphQLObjectType, GraphQLString } = require('graphql');
+const { ModType } = require('./types/Mod');
 
 module.exports = new GraphQLSchema({
     query: new GraphQLObjectType({
         name: 'Query',
-        description: '...',
+        description: 'The root query object',
 
         fields: () => ({
             mod: {
