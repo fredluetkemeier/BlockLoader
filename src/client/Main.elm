@@ -1,7 +1,7 @@
 module Main exposing (main)
 
 import Browser
-import Element exposing (Element, el, none)
+import Element exposing (Element, el, none, text)
 import Html exposing (Html)
 
 
@@ -49,4 +49,8 @@ update msg model =
 
 view : Model -> Html msg
 view model =
-    Element.layout [] none
+    Element.layout []
+        (el
+            []
+            (text "Hello world!")
+        )
