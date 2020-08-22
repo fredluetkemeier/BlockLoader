@@ -1,7 +1,7 @@
 module Main exposing (main)
 
 import Browser
-import Element exposing (Element, centerX, column, el, none, rgb, rgb255, text)
+import Element exposing (Color, Element, centerX, column, el, none, rgb, rgb255, text)
 import Element.Background as Background
 import Element.Font as Font
 import Element.Region exposing (heading)
@@ -31,6 +31,12 @@ type alias Model =
     {}
 
 
+colors =
+    { backgroundMain = rgb255 54 54 54
+    , fontMain = rgb255 227 227 227
+    }
+
+
 
 -- UPDATE
 
@@ -53,8 +59,12 @@ update msg model =
 view : Model -> Html msg
 view model =
     Element.layout
-        [ Background.color (rgb255 54 54 54)
-        , Font.color (rgb255 227 227 227)
+        [ Background.color colors.backgroundMain
+        , Font.color colors.fontMain
+        , Font.family
+            [ Font.typeface "Quicksand"
+            , Font.sansSerif
+            ]
         ]
         (column
             [ centerX ]
@@ -64,4 +74,5 @@ view model =
 
 
 viewHeader =
-    el [ centerX, heading 1 ] (text "Hello World!")
+    el [ centerX, heading 1 ]
+        (text "Hello World!")

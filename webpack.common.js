@@ -13,7 +13,6 @@ module.exports = {
     plugins: [
         new HtmlWebpackPlugin({
             title: 'mpm',
-            cache: true,
             inject: 'body',
             template: path.resolve(__dirname, 'template.html'),
             favicon: path.resolve(__dirname, 'favicon.ico'),
