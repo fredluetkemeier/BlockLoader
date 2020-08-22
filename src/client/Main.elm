@@ -56,7 +56,6 @@ edges =
 
 type Msg
     = NoOp
-    | WriteFile
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
