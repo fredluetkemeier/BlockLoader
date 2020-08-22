@@ -1,21 +1,9 @@
 module Main exposing (main)
 
 import Browser
-import Element
-    exposing
-        ( alignRight
-        , centerX
-        , column
-        , el
-        , fill
-        , none
-        , rgb255
-        , text
-        , width
-        )
+import Element exposing (..)
 import Element.Background as Background
 import Element.Font as Font
-import Element.Region exposing (heading)
 import Html exposing (Html)
 
 
@@ -42,9 +30,23 @@ type alias Model =
     {}
 
 
+
+-- CONSTANTS
+
+
 colors =
-    { backgroundMain = rgb255 54 54 54
-    , fontMain = rgb255 227 227 227
+    { background = rgb255 54 54 54
+    , backgroundSecondary = rgb255 90 83 167
+    , font = rgb255 227 227 227
+    , accent = rgb255 204 240 255
+    }
+
+
+edges =
+    { top = 0
+    , right = 0
+    , bottom = 0
+    , left = 0
     }
 
 
@@ -54,6 +56,7 @@ colors =
 
 type Msg
     = NoOp
+    | WriteFile
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -70,20 +73,56 @@ update msg model =
 view : Model -> Html msg
 view model =
     Element.layout
-        [ Background.color colors.backgroundMain
-        , Font.color colors.fontMain
+        [ Background.color colors.background
+        , Font.color colors.font
         , Font.family
             [ Font.typeface "Quicksand"
             , Font.sansSerif
             ]
         ]
         (column
-            [ centerX, width fill ]
+            [ width fill ]
             [ viewHeader
             ]
         )
 
 
+viewHeader : Element msg
 viewHeader =
-    el [ Font.center, width fill ]
-        (text "Hello World!")
+    el
+        [ Background.color colors.backgroundSecondary
+        , width fill
+        ]
+        (el [ centerX ]
+            (row
+                [ height fill
+                , width (px 800)
+                , centerY
+                , spaceEvenly
+                , paddingEach { edges | top = 12, bottom = 12 }
+                ]
+                [ viewLogo
+                , viewSignInLink
+                ]
+            )
+        )
+
+
+viewLogo : Element msg
+viewLogo =
+    row
+        [ Font.size 28
+        , spacing 12
+        ]
+        [ image [ height (px 32) ]
+            { src = "/dist/logo.svg", description = "The MPM logo" }
+        , text "MPM"
+        ]
+
+
+viewSignInLink : Element msg
+viewSignInLink =
+    link []
+        { url = "/signIn"
+        , label = text "Sign In"
+        }

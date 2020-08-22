@@ -11,7 +11,6 @@ module.exports = (env) => {
               devServer: {
                   contentBase: path.join(__dirname, './dist'),
                   index: 'index.html',
-                  compress: true,
                   open: true,
                   openPage: 'dist/index.html',
                   publicPath: '/dist',
