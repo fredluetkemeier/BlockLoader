@@ -6,8 +6,8 @@
     "scripts": {
         "start": "node src/server/server.js",
         "watch:server": "nodemon --watch src/server/",
-        "watch:client": "webpack --config webpack.dev.js --watch",
-        "dev-server": "webpack-dev-server --config webpack.dev.js"
+        "watch:client": "webpack --watch --env.dev=true",
+        "dev-server": "webpack-dev-server --config webpack.config.js --env.dev"
     },
     "repository": {
         "type": "git",
@@ -41,6 +41,7 @@
         "sass": "^1.26.10",
         "sass-loader": "^9.0.3",
         "style-loader": "^1.2.1",
+        "terser-webpack-plugin": "^4.1.0",
         "url-loader": "^4.1.0",
         "webpack": "^4.44.1",
         "webpack-cli": "^3.3.12",

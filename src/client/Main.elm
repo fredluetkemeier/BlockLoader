@@ -1,7 +1,18 @@
 module Main exposing (main)
 
 import Browser
-import Element exposing (Color, Element, centerX, column, el, none, rgb, rgb255, text)
+import Element
+    exposing
+        ( alignRight
+        , centerX
+        , column
+        , el
+        , fill
+        , none
+        , rgb255
+        , text
+        , width
+        )
 import Element.Background as Background
 import Element.Font as Font
 import Element.Region exposing (heading)
@@ -67,12 +78,12 @@ view model =
             ]
         ]
         (column
-            [ centerX ]
+            [ centerX, width fill ]
             [ viewHeader
             ]
         )
 
 
 viewHeader =
-    el [ centerX, heading 1 ]
+    el [ Font.center, width fill ]
         (text "Hello World!")
