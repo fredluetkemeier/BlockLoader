@@ -1,7 +1,10 @@
 module Main exposing (main)
 
 import Browser
-import Element exposing (Element, el, none, text)
+import Element exposing (Element, centerX, column, el, none, rgb, rgb255, text)
+import Element.Background as Background
+import Element.Font as Font
+import Element.Region exposing (heading)
 import Html exposing (Html)
 
 
@@ -49,8 +52,16 @@ update msg model =
 
 view : Model -> Html msg
 view model =
-    Element.layout []
-        (el
-            []
-            (text "Hello world!")
+    Element.layout
+        [ Background.color (rgb255 54 54 54)
+        , Font.color (rgb255 227 227 227)
+        ]
+        (column
+            [ centerX ]
+            [ viewHeader
+            ]
         )
+
+
+viewHeader =
+    el [ centerX, heading 1 ] (text "Hello World!")
