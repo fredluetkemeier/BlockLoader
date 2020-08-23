@@ -7,11 +7,11 @@ module.exports = (env) => {
         mode: isDev ? 'development' : 'production',
         cache: isDev ? true : false,
         devtool: isDev ? 'inline-source-map' : '',
-        entry: './src',
+        entry: './src/renderer',
         output: {
-            path: path.resolve(__dirname, 'dist'),
-            publicPath: '/dist',
-            filename: 'app.bundle.js',
+            path: path.resolve(__dirname, 'assets'),
+            publicPath: '/assets',
+            filename: 'app.js',
         },
         target: 'electron-renderer',
         module: {
@@ -20,7 +20,6 @@ module.exports = (env) => {
                     test: /\.elm$/,
                     exclude: [/elm-stuff/, /node_modules/],
                     use: [
-                        { loader: 'elm-hot-webpack-loader' },
                         {
                             loader: 'elm-webpack-loader',
                             options: {

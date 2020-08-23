@@ -9,7 +9,7 @@ import Html exposing (Html)
 
 main : Program () Model Msg
 main =
-    Browser.element
+    Browser.application
         { init = init
         , view = view
         , update = update
@@ -101,7 +101,7 @@ viewHeader =
                 , paddingEach { edges | top = 12, bottom = 12 }
                 ]
                 [ viewLogo
-                , viewSignInLink
+                , viewInstalledLink
                 ]
             )
         )
@@ -109,19 +109,29 @@ viewHeader =
 
 viewLogo : Element msg
 viewLogo =
-    row
-        [ Font.size 28
-        , spacing 12
-        ]
-        [ image [ height (px 32) ]
-            { src = "./assets/logo.svg", description = "The MPM logo" }
-        , text "MPM"
-        ]
-
-
-viewSignInLink : Element msg
-viewSignInLink =
     link []
-        { url = "/signIn"
-        , label = text "Sign In"
+        { url = "#"
+        , label =
+            row
+                [ Font.size 28
+                , spacing 12
+                ]
+                [ image [ height (px 32) ]
+                    { src = "./assets/logo.svg"
+                    , description = "The MPM logo"
+                    }
+                , text "MPM"
+                ]
+        }
+
+
+viewInstalledLink : Element msg
+viewInstalledLink =
+    link []
+        { url = "#installed"
+        , label =
+            image [ height (px 20) ]
+                { src = "./assets/th-list.svg"
+                , description = "Installed mods icon"
+                }
         }
