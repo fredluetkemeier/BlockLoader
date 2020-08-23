@@ -2,13 +2,8 @@
     "name": "mpm",
     "version": "1.0.0",
     "description": "A package manager for Minecraft",
-    "main": "./src/server/server.js",
-    "scripts": {
-        "start": "node src/server/server.js",
-        "watch:server": "nodemon --watch src/server/",
-        "watch:client": "webpack --watch --env.dev=true",
-        "dev-server": "webpack-dev-server --env.dev"
-    },
+    "main": "./src/index.js",
+    "scripts": {},
     "repository": {
         "type": "git",
         "url": "git+https://github.com/fredluetkemeier/mpm.git"
@@ -20,32 +15,6 @@
         "url": "https://github.com/fredluetkemeier/mpm/issues"
     },
     "homepage": "https://github.com/fredluetkemeier/mpm#readme",
-    "dependencies": {
-        "express": "^4.17.1",
-        "express-graphql": "^0.11.0",
-        "graphql": "^15.3.0",
-        "moment": "^2.27.0",
-        "node-fetch": "^2.6.0"
-    },
-    "devDependencies": {
-        "clean-webpack-plugin": "^3.0.0",
-        "css-loader": "^4.2.1",
-        "elm": "^0.19.1-3",
-        "elm-hot-webpack-loader": "^1.1.7",
-        "elm-webpack-loader": "^6.0.1",
-        "file-loader": "^6.0.0",
-        "html-webpack-plugin": "^4.3.0",
-        "mini-css-extract-plugin": "^0.10.0",
-        "nodemon": "^2.0.4",
-        "resolve-url-loader": "^3.1.1",
-        "sass": "^1.26.10",
-        "sass-loader": "^9.0.3",
-        "style-loader": "^1.2.1",
-        "terser-webpack-plugin": "^4.1.0",
-        "url-loader": "^4.1.0",
-        "webpack": "^4.44.1",
-        "webpack-cli": "^3.3.12",
-        "webpack-dev-server": "^3.11.0",
-        "webpack-merge": "^5.1.2"
-    }
+    "dependencies": {},
+    "devDependencies": {}
 }
