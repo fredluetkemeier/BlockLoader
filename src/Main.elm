@@ -114,7 +114,7 @@ viewLogo =
         , spacing 12
         ]
         [ image [ height (px 32) ]
-            { src = "/dist/logo.svg", description = "The MPM logo" }
+            { src = "./assets/logo.svg", description = "The MPM logo" }
         , text "MPM"
         ]
 
