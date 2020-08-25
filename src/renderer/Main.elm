@@ -1,10 +1,13 @@
 module Main exposing (main)
 
-import Browser
+import Browser exposing (Document, UrlRequest)
+import Browser.Navigation as Nav
 import Element exposing (..)
 import Element.Background as Background
 import Element.Font as Font
-import Html exposing (Html)
+import Page.Search as Search
+import Route exposing (Route)
+import Url exposing (Url)
 
 
 main : Program () Model Msg
@@ -14,12 +17,38 @@ main =
         , view = view
         , update = update
         , subscriptions = \_ -> Sub.none
+        , onUrlRequest = ClickedLink
+        , onUrlChange = ChangedUrl
         }
 
 
-init : () -> ( Model, Cmd msg )
-init _ =
-    ( {}, Cmd.none )
+init : () -> Url -> Nav.Key -> ( Model, Cmd Msg )
+init _ url navKey =
+    let
+        model =
+            { route = Route.parseUrl url
+            , page = SearchPage Search.initialModel
+            , navKey = navKey
+            }
+    in
+    initCurrentPage ( model, Cmd.none )
+
+
+initCurrentPage : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+initCurrentPage ( model, existingCmds ) =
+    let
+        ( currentPage, mappedPageCmds ) =
+            case model.route of
+                Route.Search ->
+                    let
+                        ( pageModel, pageCmds ) =
+                            Search.init
+                    in
+                    ( SearchPage pageModel, Cmd.map SearchPageMsg pageCmds )
+    in
+    ( { model | page = currentPage }
+    , Cmd.batch [ existingCmds, mappedPageCmds ]
+    )
 
 
 
@@ -27,7 +56,10 @@ init _ =
 
 
 type alias Model =
-    {}
+    { route : Route
+    , page : Page
+    , navKey : Nav.Key
+    }
 
 
 
@@ -55,35 +87,79 @@ edges =
 
 
 type Msg
-    = NoOp
+    = ChangedUrl Url
+    | ClickedLink UrlRequest
+    | SearchPageMsg Search.Msg
+
+
+type Page
+    = SearchPage Search.Model
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
-        NoOp ->
-            ( model, Cmd.none )
+    case ( msg, model.page ) of
+        ( SearchPageMsg pageMsg, SearchPage pageModel ) ->
+            let
+                ( updatedPageModel, updatedCmd ) =
+                    Search.update pageMsg pageModel
+            in
+            ( { model | page = SearchPage updatedPageModel }
+            , Cmd.map SearchPageMsg updatedCmd
+            )
+
+        ( ClickedLink urlRequest, _ ) ->
+            case urlRequest of
+                Browser.Internal url ->
+                    ( model
+                    , Nav.pushUrl model.navKey (Url.toString url)
+                    )
+
+                Browser.External url ->
+                    ( model
+                    , Nav.load url
+                    )
+
+        ( ChangedUrl url, _ ) ->
+            let
+                newRoute =
+                    Route.parseUrl url
+            in
+            ( { model | route = newRoute }, Cmd.none )
+                |> initCurrentPage
 
 
 
 -- VIEW
 
 
-view : Model -> Html msg
+view : Model -> Document msg
 view model =
-    Element.layout
-        [ Background.color colors.background
-        , Font.color colors.font
-        , Font.family
-            [ Font.typeface "Quicksand"
-            , Font.sansSerif
+    { title = "MPM"
+    , body =
+        [ Element.layout
+            [ Background.color colors.background
+            , Font.color colors.font
+            , Font.family
+                [ Font.typeface "Quicksand"
+                , Font.sansSerif
+                ]
             ]
+            (column
+                [ width fill ]
+                [ viewHeader
+                ]
+            )
         ]
-        (column
-            [ width fill ]
-            [ viewHeader
-            ]
-        )
+    }
+
+
+viewPage : Page -> Element Msg
+viewPage page =
+    case page of
+        SearchPage model ->
+            Search.view model
+                |> Element.map SearchPageMsg
 
 
 viewHeader : Element msg
@@ -110,7 +186,7 @@ viewHeader =
 viewLogo : Element msg
 viewLogo =
     link []
-        { url = "#"
+        { url = "#search"
         , label =
             row
                 [ Font.size 28

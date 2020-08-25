@@ -19,7 +19,9 @@
         "url": "https://github.com/fredluetkemeier/mpm/issues"
     },
     "homepage": "https://github.com/fredluetkemeier/mpm#readme",
-    "dependencies": {},
+    "dependencies": {
+        "express": "^4.17.1"
+    },
     "devDependencies": {
         "css-loader": "^4.2.1",
         "electron": "^9.2.1",

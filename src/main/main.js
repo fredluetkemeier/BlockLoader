@@ -1,4 +1,8 @@
 const { app, BrowserWindow } = require('electron');
+const { startServer } = require('./server');
+
+const PORT = 5000;
+let server;
 
 function createWindow() {
     const window = new BrowserWindow({
@@ -9,7 +13,8 @@ function createWindow() {
         },
     });
 
-    window.loadFile('index.html');
+    server = startServer(PORT);
+    window.loadURL(`http://localhost:${PORT}`);
 
     window.webContents.openDevTools();
 }

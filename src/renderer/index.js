@@ -4,4 +4,4 @@ import { Elm } from './Main';
 //     node: document.getElementById('app'),
 // });
 
-const app = Elm.Main.fullscreen();
+const app = Elm.Main.init();

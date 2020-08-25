@@ -36,6 +36,5 @@ module.exports = (env) => {
         resolve: {
             extensions: ['.js', '.elm'],
         },
-        plugins: [],
     };
 };
