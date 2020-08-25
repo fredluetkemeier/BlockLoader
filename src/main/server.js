@@ -10,6 +10,8 @@ function startServer(port) {
         res.sendFile(path.join(__dirname, '../../assets/index.html'));
     });
 
+    app.get('/graphql', (req, res) => {});
+
     return app.listen(port);
 }
 

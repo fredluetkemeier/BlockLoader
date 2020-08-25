@@ -7,6 +7,7 @@ import Element.Background as Background
 import Element.Font as Font
 import Page.Search as Search
 import Route exposing (Route)
+import Styles exposing (colors, edges)
 import Url exposing (Url)
 
 
@@ -63,26 +64,6 @@ type alias Model =
 
 
 
--- CONSTANTS
-
-
-colors =
-    { background = rgb255 54 54 54
-    , backgroundSecondary = rgb255 90 83 167
-    , font = rgb255 227 227 227
-    , accent = rgb255 204 240 255
-    }
-
-
-edges =
-    { top = 0
-    , right = 0
-    , bottom = 0
-    , left = 0
-    }
-
-
-
 -- UPDATE
 
 
@@ -133,7 +114,7 @@ update msg model =
 -- VIEW
 
 
-view : Model -> Document msg
+view : Model -> Document Msg
 view model =
     { title = "MPM"
     , body =
@@ -148,6 +129,7 @@ view model =
             (column
                 [ width fill ]
                 [ viewHeader
+                , viewPage model.page
                 ]
             )
         ]
@@ -165,7 +147,7 @@ viewPage page =
 viewHeader : Element msg
 viewHeader =
     el
-        [ Background.color colors.backgroundSecondary
+        [ Background.color colors.backgroundColorful
         , width fill
         ]
         (el [ centerX ]
@@ -186,7 +168,7 @@ viewHeader =
 viewLogo : Element msg
 viewLogo =
     link []
-        { url = "#search"
+        { url = "/search"
         , label =
             row
                 [ Font.size 28
@@ -204,7 +186,7 @@ viewLogo =
 viewInstalledLink : Element msg
 viewInstalledLink =
     link []
-        { url = "#installed"
+        { url = "/installed"
         , label =
             image [ height (px 20) ]
                 { src = "./assets/th-list.svg"

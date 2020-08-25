@@ -1,11 +1,16 @@
 module Page.Search exposing (Model, Msg, init, initialModel, update, view)
 
 import Element exposing (..)
+import Element.Background as Background
+import Element.Font as Font
+import Element.Input as Input
 import GraphQl exposing (Named, Operation, Query)
 import GraphQl.Http as GraphQl
+import Html exposing (input)
 import Json.Decode as Decode exposing (Decoder, list, string)
 import Json.Decode.Pipeline exposing (required)
 import RemoteData exposing (WebData)
+import Styles exposing (colors, edges)
 
 
 
@@ -14,12 +19,13 @@ import RemoteData exposing (WebData)
 
 init : ( Model, Cmd Msg )
 init =
-    ( initialModel, findMods "" )
+    ( initialModel, findMods initialModel.searchTerm )
 
 
 initialModel : Model
 initialModel =
-    { results = RemoteData.Loading
+    { searchTerm = ""
+    , results = RemoteData.Loading
     }
 
 
@@ -28,7 +34,8 @@ initialModel =
 
 
 type alias Model =
-    { results : WebData (List Mod)
+    { searchTerm : String
+    , results : WebData (List Mod)
     }
 
 
@@ -43,18 +50,18 @@ type alias Mod =
 
 
 type Msg
-    = FindMods
-    | ReceivedMods (WebData (List Mod))
+    = ReceivedMods (WebData (List Mod))
+    | SetSearchTerm String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        FindMods ->
-            ( { model | results = RemoteData.Loading }, findMods "lithium" )
-
         ReceivedMods response ->
             ( { model | results = response }, Cmd.none )
+
+        SetSearchTerm searchTerm ->
+            ( { model | searchTerm = searchTerm }, findMods searchTerm )
 
 
 findMods : String -> Cmd Msg
@@ -72,7 +79,7 @@ findModsQuery : String -> Operation Query Named
 findModsQuery searchTerm =
     GraphQl.named "FindMods"
         [ GraphQl.field "findMods"
-            |> GraphQl.withArgument "search" (GraphQl.variable searchTerm)
+            |> GraphQl.withArgument "searchTerm" (GraphQl.string searchTerm)
             |> GraphQl.withSelectors
                 [ GraphQl.field "id"
                 , GraphQl.field "name"
@@ -91,6 +98,30 @@ modDecoder =
 -- VIEW
 
 
-view : Model -> Element msg
+view : Model -> Element Msg
 view model =
-    el [] (text "Search")
+    column
+        [ centerX
+        , width (px 800)
+        ]
+        [ viewSearchInput model.searchTerm
+        ]
+
+
+viewSearchInput : String -> Element Msg
+viewSearchInput searchTerm =
+    el
+        [ paddingEach { edges | top = 12 }
+        , Font.color colors.font
+        , width fill
+        ]
+        (Input.search
+            [ Input.focusedOnLoad
+            , Background.color colors.backgroundLight
+            ]
+            { onChange = SetSearchTerm
+            , text = searchTerm
+            , placeholder = Just (Input.placeholder [ Font.color colors.fontLight ] (text "Search for a mod"))
+            , label = Input.labelHidden "Seach for a mod"
+            }
+        )
