@@ -52,8 +52,7 @@ type alias Mod =
 
 
 type Msg
-    = FindMods
-    | ReceivedMods (WebData (List Mod))
+    = ReceivedMods (WebData (List Mod))
     | SetSearchTerm String
 
 
@@ -64,10 +63,9 @@ update msg model =
             ( { model | results = response }, Cmd.none )
 
         SetSearchTerm searchTerm ->
-            ( { model | searchTerm = searchTerm }, Delay.after 250 Millisecond FindMods )
-
-        FindMods ->
-            ( model, findMods model.searchTerm )
+            ( { model | searchTerm = searchTerm }
+            , findMods searchTerm
+            )
 
 
 findMods : String -> Cmd Msg
