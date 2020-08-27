@@ -136,14 +136,6 @@ view model =
     }
 
 
-viewPage : Page -> Element Msg
-viewPage page =
-    case page of
-        SearchPage model ->
-            Search.view model
-                |> Element.map SearchPageMsg
-
-
 viewHeader : Element msg
 viewHeader =
     el
@@ -193,3 +185,11 @@ viewInstalledLink =
                 , description = "Installed mods icon"
                 }
         }
+
+
+viewPage : Page -> Element Msg
+viewPage page =
+    case page of
+        SearchPage model ->
+            Search.view model
+                |> Element.map SearchPageMsg

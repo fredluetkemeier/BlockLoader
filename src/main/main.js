@@ -6,7 +6,7 @@ let server;
 
 function createWindow() {
     const window = new BrowserWindow({
-        width: 1280,
+        width: 1000,
         height: 720,
         webPreferences: {
             nodeIntegration: true,
