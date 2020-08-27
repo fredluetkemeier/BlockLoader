@@ -6,7 +6,7 @@ module.exports = (env) => {
     return {
         mode: isDev ? 'development' : 'production',
         cache: isDev ? true : false,
-        devtool: isDev ? 'inline-source-map' : '',
+        devtool: isDev ? 'inline-source' : '',
         entry: './src/renderer',
         output: {
             path: path.resolve(__dirname, 'assets'),
