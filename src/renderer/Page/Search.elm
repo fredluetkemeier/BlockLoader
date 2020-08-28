@@ -88,7 +88,12 @@ update msg model =
                         ( { model | results = response }, Cmd.none )
 
                     else
-                        ( { model | results = RemoteData.Loading, searchTerm = model.inputText }, findMods model.inputText )
+                        ( { model
+                            | results = RemoteData.Loading
+                            , searchTerm = model.inputText
+                          }
+                        , findMods model.inputText
+                        )
             in
             ( newModel, newCmd )
 
