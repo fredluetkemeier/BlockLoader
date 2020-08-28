@@ -2,7 +2,6 @@ const { app, BrowserWindow } = require('electron');
 const { startServer } = require('./server');
 
 const PORT = 5000;
-let server;
 
 function createWindow() {
     const window = new BrowserWindow({
@@ -13,13 +12,14 @@ function createWindow() {
         },
     });
 
-    server = startServer(PORT);
     window.loadURL(`http://localhost:${PORT}`);
 
     window.webContents.openDevTools();
 }
 
-app.whenReady().then(createWindow);
+app.whenReady()
+    .then(() => startServer(PORT))
+    .then(createWindow);
 
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {

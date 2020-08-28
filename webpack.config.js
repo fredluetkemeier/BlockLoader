@@ -9,8 +9,8 @@ module.exports = (env) => {
         devtool: isDev ? 'inline-source' : '',
         entry: './src/renderer',
         output: {
-            path: path.resolve(__dirname, 'assets'),
-            publicPath: '/assets',
+            path: path.resolve(__dirname, 'dist'),
+            publicPath: '/dist',
             filename: 'app.js',
         },
         target: 'electron-renderer',

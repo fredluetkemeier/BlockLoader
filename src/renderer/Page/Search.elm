@@ -1,6 +1,6 @@
 module Page.Search exposing (Model, Msg, init, initialModel, update, view)
 
-import Delay as Delay exposing (..)
+import Delay
 import Element exposing (..)
 import Element.Background as Background
 import Element.Font as Font
@@ -21,12 +21,13 @@ import Styles exposing (colors, edges)
 
 init : ( Model, Cmd Msg )
 init =
-    ( initialModel, findMods initialModel.searchTerm )
+    ( initialModel, findMods initialModel.inputText )
 
 
 initialModel : Model
 initialModel =
-    { searchTerm = ""
+    { inputText = ""
+    , searchTerm = ""
     , results = RemoteData.Loading
     }
 
@@ -36,7 +37,8 @@ initialModel =
 
 
 type alias Model =
-    { searchTerm : String
+    { inputText : String
+    , searchTerm : String
     , results : WebData (List Mod)
     }
 
@@ -52,20 +54,43 @@ type alias Mod =
 
 
 type Msg
-    = ReceivedMods (WebData (List Mod))
-    | SetSearchTerm String
+    = SetInputText String
+    | ReceivedMods (WebData (List Mod))
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        ReceivedMods response ->
-            ( { model | results = response }, Cmd.none )
+        SetInputText text ->
+            let
+                ( newModel, newCmd ) =
+                    case model.results of
+                        RemoteData.Loading ->
+                            ( { model | inputText = text }
+                            , Cmd.none
+                            )
 
-        SetSearchTerm searchTerm ->
-            ( { model | searchTerm = searchTerm }
-            , findMods searchTerm
-            )
+                        _ ->
+                            ( { model
+                                | inputText = text
+                                , searchTerm = text
+                                , results = RemoteData.Loading
+                              }
+                            , findMods text
+                            )
+            in
+            ( newModel, newCmd )
+
+        ReceivedMods response ->
+            let
+                ( newModel, newCmd ) =
+                    if model.inputText == model.searchTerm then
+                        ( { model | results = response }, Cmd.none )
+
+                    else
+                        ( { model | results = RemoteData.Loading, searchTerm = model.inputText }, findMods model.inputText )
+            in
+            ( newModel, newCmd )
 
 
 findMods : String -> Cmd Msg
@@ -108,13 +133,13 @@ view model =
         [ centerX
         , width (px 800)
         ]
-        [ lazy viewSearchInput model.searchTerm
+        [ lazy viewSearchInput model.inputText
         , lazy viewContent model.results
         ]
 
 
 viewSearchInput : String -> Element Msg
-viewSearchInput searchTerm =
+viewSearchInput inputText =
     el
         [ paddingEach { edges | top = 12 }
         , Font.color colors.font
@@ -124,8 +149,8 @@ viewSearchInput searchTerm =
             [ Input.focusedOnLoad
             , Background.color colors.backgroundLight
             ]
-            { onChange = SetSearchTerm
-            , text = searchTerm
+            { onChange = SetInputText
+            , text = inputText
             , placeholder = Just (Input.placeholder [ Font.color colors.fontLight ] (text "Search for a mod"))
             , label = Input.labelHidden "Seach for a mod"
             }
@@ -168,6 +193,6 @@ viewKeyedMod mod =
 
 viewMod : Mod -> Element msg
 viewMod mod =
-    row [ width fill ]
+    row [ width fill, paddingEach { edges | top = 12 } ]
         [ text mod.name
         ]
