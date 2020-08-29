@@ -1,25 +1,15 @@
 const { app, BrowserWindow } = require('electron');
+const path = require('path');
 const { startServer } = require('./server');
 
 const PORT = 5000;
 
-function createWindow() {
-    const window = new BrowserWindow({
-        width: 1000,
-        height: 720,
-        webPreferences: {
-            nodeIntegration: true,
-        },
-    });
-
-    window.loadURL(`http://localhost:${PORT}`);
-
-    window.webContents.openDevTools();
-}
+let startupWindow;
 
 app.whenReady()
+    .then(createStartupWindow)
     .then(() => startServer(PORT))
-    .then(createWindow);
+    .then(createMainWindow);
 
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
@@ -29,6 +19,49 @@ app.on('window-all-closed', () => {
 
 app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
-        createWindow();
+        createMainWindow();
     }
 });
+
+function createStartupWindow() {
+    startupWindow = new BrowserWindow({
+        width: 250,
+        height: 300,
+        webPreferences: { nodeIntegration: true },
+        show: false,
+        movable: false,
+        maximizable: false,
+        minimizable: false,
+        resizable: false,
+        alwaysOnTop: true,
+        frame: false,
+    });
+
+    startupWindow.loadFile(path.join(__dirname, '../../assets/startup.html'));
+
+    //startupWindow.webContents.openDevTools();
+
+    startupWindow.once('ready-to-show', () => {
+        startupWindow.show();
+    });
+}
+
+function createMainWindow() {
+    const window = new BrowserWindow({
+        width: 1000,
+        height: 720,
+        webPreferences: {
+            nodeIntegration: true,
+        },
+        show: false,
+    });
+
+    window.loadURL(`http://localhost:${PORT}`);
+
+    window.once('ready-to-show', () => {
+        startupWindow.hide();
+        window.show();
+    });
+
+    window.webContents.openDevTools();
+}

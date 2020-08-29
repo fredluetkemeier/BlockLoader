@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <style>
+            @font-face {
+                font-family: 'Quicksand';
+                src: url('./assets/Quicksand.ttf');
+            }
+
+            html,
+            body {
+                background-color: rgb(54 54 54);
+                height: 100%;
+                margin: 0px;
+                /* overflow: hidden; */
+            }
+
+            .container {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-direction: row;
+                height: 100%;
+            }
+
+            .logo {
+                height: 100px;
+                position: absolute;
+            }
+
+            .loading-spinner {
+                height: 220px;
+                position: absolute;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <img class="loading-spinner" src="./loading-slim.svg" />
+            <img class="logo" src="./logo.svg" />
+        </div>
+    </body>
+</html>
