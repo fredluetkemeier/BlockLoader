@@ -1,6 +1,5 @@
 module Page.Search exposing (Model, Msg, init, initialModel, update, view)
 
-import Delay
 import Element exposing (..)
 import Element.Background as Background
 import Element.Font as Font
@@ -11,8 +10,11 @@ import GraphQl exposing (Named, Operation, Query)
 import GraphQl.Http as GraphQl
 import Json.Decode as Decode exposing (Decoder, field, list, string)
 import Json.Decode.Pipeline exposing (required)
+import Process
 import RemoteData exposing (WebData)
 import Styles exposing (colors, edges)
+import Task
+import Time
 
 
 
@@ -21,15 +23,20 @@ import Styles exposing (colors, edges)
 
 init : ( Model, Cmd Msg )
 init =
-    ( initialModel, findMods initialModel.inputText )
+    ( initialModel, findMods initialModel.searchTerm )
 
 
 initialModel : Model
 initialModel =
-    { inputText = ""
-    , searchTerm = ""
+    { searchTerm = ""
+    , lastInputTime = 0
     , results = RemoteData.Loading
     }
+
+
+debounceTime : Int
+debounceTime =
+    350
 
 
 
@@ -37,8 +44,8 @@ initialModel =
 
 
 type alias Model =
-    { inputText : String
-    , searchTerm : String
+    { searchTerm : String
+    , lastInputTime : Int
     , results : WebData (List Mod)
     }
 
@@ -55,6 +62,8 @@ type alias Mod =
 
 type Msg
     = SetInputText String
+    | SetTime Time.Posix
+    | Debounce Int
     | ReceivedMods (WebData (List Mod))
 
 
@@ -63,39 +72,42 @@ update msg model =
     case msg of
         SetInputText text ->
             let
-                ( newModel, newCmd ) =
-                    case model.results of
-                        RemoteData.Loading ->
-                            ( { model | inputText = text }
-                            , Cmd.none
-                            )
-
-                        _ ->
-                            ( { model
-                                | inputText = text
-                                , searchTerm = text
-                                , results = RemoteData.Loading
-                              }
-                            , findMods text
-                            )
+                newModel =
+                    { model
+                        | searchTerm = text
+                        , results = RemoteData.Loading
+                    }
             in
-            ( newModel, newCmd )
+            case text of
+                "" ->
+                    ( newModel, findMods text )
+
+                _ ->
+                    ( newModel, Task.perform SetTime Time.now )
+
+        SetTime time ->
+            ( { model | lastInputTime = Time.posixToMillis time }
+            , Task.perform
+                Debounce
+                (Process.sleep (toFloat debounceTime)
+                    |> Task.andThen (\_ -> Task.map Time.posixToMillis Time.now)
+                )
+            )
+
+        Debounce currentTime ->
+            if ( currentTime, model.lastInputTime ) |> areFarEnoughApart debounceTime then
+                ( model, findMods model.searchTerm )
+
+            else
+                ( model, Cmd.none )
 
         ReceivedMods response ->
-            let
-                ( newModel, newCmd ) =
-                    if model.inputText == model.searchTerm then
-                        ( { model | results = response }, Cmd.none )
+            ( { model | results = response }, Cmd.none )
 
-                    else
-                        ( { model
-                            | results = RemoteData.Loading
-                            , searchTerm = model.inputText
-                          }
-                        , findMods model.inputText
-                        )
-            in
-            ( newModel, newCmd )
+
+areFarEnoughApart : Int -> ( Int, Int ) -> Bool
+areFarEnoughApart timeSpan ( currentTime, pastTime ) =
+    currentTime - pastTime >= timeSpan
 
 
 findMods : String -> Cmd Msg
@@ -138,13 +150,13 @@ view model =
         [ centerX
         , width (px 800)
         ]
-        [ lazy viewSearchInput model.inputText
+        [ lazy viewSearchInput model.searchTerm
         , lazy viewContent model.results
         ]
 
 
 viewSearchInput : String -> Element Msg
-viewSearchInput inputText =
+viewSearchInput searchTerm =
     el
         [ paddingEach { edges | top = 12 }
         , Font.color colors.font
@@ -155,7 +167,7 @@ viewSearchInput inputText =
             , Background.color colors.backgroundLight
             ]
             { onChange = SetInputText
-            , text = inputText
+            , text = searchTerm
             , placeholder = Just (Input.placeholder [ Font.color colors.fontLight ] (text "Search for a mod"))
             , label = Input.labelHidden "Seach for a mod"
             }
