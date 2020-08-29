@@ -73,10 +73,7 @@ update msg model =
         SetInputText text ->
             let
                 newModel =
-                    { model
-                        | searchTerm = text
-                        , results = RemoteData.Loading
-                    }
+                    { model | searchTerm = text }
             in
             case text of
                 "" ->
@@ -95,8 +92,8 @@ update msg model =
             )
 
         Debounce currentTime ->
-            if ( currentTime, model.lastInputTime ) |> areFarEnoughApart debounceTime then
-                ( model, findMods model.searchTerm )
+            if ( currentTime, model.lastInputTime ) |> areFurtherApartThan debounceTime then
+                ( { model | results = RemoteData.Loading }, findMods model.searchTerm )
 
             else
                 ( model, Cmd.none )
@@ -105,8 +102,8 @@ update msg model =
             ( { model | results = response }, Cmd.none )
 
 
-areFarEnoughApart : Int -> ( Int, Int ) -> Bool
-areFarEnoughApart timeSpan ( currentTime, pastTime ) =
+areFurtherApartThan : Int -> ( Int, Int ) -> Bool
+areFurtherApartThan timeSpan ( currentTime, pastTime ) =
     currentTime - pastTime >= timeSpan
 
 
@@ -168,8 +165,8 @@ viewSearchInput searchTerm =
             ]
             { onChange = SetInputText
             , text = searchTerm
-            , placeholder = Just (Input.placeholder [ Font.color colors.fontLight ] (text "Search for a mod"))
-            , label = Input.labelHidden "Seach for a mod"
+            , placeholder = Just (Input.placeholder [ Font.color colors.fontLight ] (text "Start typing to search"))
+            , label = Input.labelHidden "Start typing to search"
             }
         )
 
