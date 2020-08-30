@@ -9,7 +9,8 @@ colors =
     , backgroundColorfulDark = rgb255 59 55 92
     , backgroundLight = rgb255 69 69 69
     , font = rgb255 227 227 227
-    , fontLight = rgb255 163 163 163
+    , fontDark = rgb255 163 163 163
+    , fontLight = rgb255 242 242 242
     , accent = rgb255 204 240 255
     , danger = rgb255 204 65 65
     }

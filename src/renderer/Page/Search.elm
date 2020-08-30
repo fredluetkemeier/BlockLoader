@@ -19,7 +19,7 @@ import Time
 
 
 
--- INIT
+-- MODEL
 
 
 init : Flags -> ( Model, Cmd Msg )
@@ -38,10 +38,6 @@ init flags =
 debounceTime : Int
 debounceTime =
     350
-
-
-
--- MODEL
 
 
 type alias Model =
