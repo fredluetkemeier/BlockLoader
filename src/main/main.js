@@ -39,8 +39,6 @@ function createStartupWindow() {
 
     startupWindow.loadFile(path.join(__dirname, '../../assets/startup.html'));
 
-    //startupWindow.webContents.openDevTools();
-
     startupWindow.once('ready-to-show', () => {
         startupWindow.show();
     });
@@ -54,6 +52,8 @@ function createMainWindow() {
             nodeIntegration: true,
         },
         show: false,
+        frame: false,
+        movable: true,
     });
 
     window.loadURL(`http://localhost:${PORT}`);

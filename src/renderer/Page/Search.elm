@@ -178,7 +178,7 @@ viewContent results =
             RemoteData.Loading ->
                 image
                     [ height (px 50), centerX ]
-                    { src = "./assets/loading.svg"
+                    { src = "./assets/icons/loading.svg"
                     , description = "Loading icon"
                     }
 

@@ -5,6 +5,7 @@ import Browser.Navigation as Nav
 import Element exposing (..)
 import Element.Background as Background
 import Element.Font as Font
+import Html.Attributes exposing (class, src)
 import Page.Search as Search
 import Route exposing (Route)
 import Styles exposing (colors, edges)
@@ -128,12 +129,30 @@ view model =
             ]
             (column
                 [ width fill ]
-                [ viewHeader
+                [ viewTitleBar
+                , viewHeader
                 , viewPage model.page
                 ]
             )
         ]
     }
+
+
+viewTitleBar : Element msg
+viewTitleBar =
+    el
+        [ width fill
+        , Background.color colors.backgroundColorfulDark
+        , htmlAttribute (class "titlebar")
+        ]
+        (row
+            [ height (px 20) ]
+            [ image [ height (px 20) ]
+                { src = "/assets/icons/exit.svg"
+                , description = "Exit the app"
+                }
+            ]
+        )
 
 
 viewHeader : Element msg
@@ -167,7 +186,7 @@ viewLogo =
                 , spacing 12
                 ]
                 [ image [ height (px 32) ]
-                    { src = "./assets/logo.svg"
+                    { src = "./assets/icons/logo.svg"
                     , description = "The MPM logo"
                     }
                 , text "MPM"
@@ -181,7 +200,7 @@ viewInstalledLink =
         { url = "/installed"
         , label =
             image [ height (px 20) ]
-                { src = "./assets/th-list.svg"
+                { src = "./assets/icons/th-list.svg"
                 , description = "Installed mods icon"
                 }
         }

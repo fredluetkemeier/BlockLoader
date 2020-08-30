@@ -6,6 +6,7 @@ import Element exposing (rgb255)
 colors =
     { background = rgb255 54 54 54
     , backgroundColorful = rgb255 90 83 167
+    , backgroundColorfulDark = rgb255 59 55 92
     , backgroundLight = rgb255 69 69 69
     , font = rgb255 227 227 227
     , fontLight = rgb255 163 163 163
