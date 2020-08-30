@@ -143,16 +143,44 @@ viewTitleBar =
     el
         [ width fill
         , Background.color colors.backgroundColorfulDark
-        , htmlAttribute (class "titlebar")
+        , htmlAttribute (class "draggable")
         ]
         (row
-            [ height (px 20) ]
-            [ image [ height (px 20) ]
-                { src = "/assets/icons/exit.svg"
-                , description = "Exit the app"
-                }
+            [ height (px 20)
+            , alignRight
+            ]
+            [ viewTitleBarButton colors.background
+                (image [ height (px 12), centerX, centerY ]
+                    { src = "/assets/icons/minimize.svg"
+                    , description = "Minimize the window"
+                    }
+                )
+            , viewTitleBarButton colors.background
+                (image [ height (px 12), centerX, centerY ]
+                    { src = "/assets/icons/maximize.svg"
+                    , description = "Maximize the window"
+                    }
+                )
+            , viewTitleBarButton colors.danger
+                (image [ height (px 16), centerX, centerY ]
+                    { src = "/assets/icons/exit.svg"
+                    , description = "Exit the app"
+                    }
+                )
             ]
         )
+
+
+viewTitleBarButton : Color -> Element msg -> Element msg
+viewTitleBarButton hoverColor children =
+    el
+        [ height fill
+        , width (px 25)
+        , mouseOver [ Background.color hoverColor ]
+        , htmlAttribute (class "non-draggable")
+        , pointer
+        ]
+        children
 
 
 viewHeader : Element msg

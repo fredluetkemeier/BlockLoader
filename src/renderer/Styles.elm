@@ -11,6 +11,7 @@ colors =
     , font = rgb255 227 227 227
     , fontLight = rgb255 163 163 163
     , accent = rgb255 204 240 255
+    , danger = rgb255 204 65 65
     }
 
 
