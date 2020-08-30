@@ -5,7 +5,8 @@ import Url.Parser exposing (..)
 
 
 type Route
-    = Search
+    = Welcome
+    | Search
 
 
 parseUrl : Url -> Route
@@ -22,5 +23,6 @@ matchRoute : Parser (Route -> a) a
 matchRoute =
     oneOf
         [ map Search top
+        , map Welcome (s "welcome")
         , map Search (s "search")
         ]

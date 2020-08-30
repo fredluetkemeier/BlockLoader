@@ -1,18 +1,22 @@
-module Main exposing (main)
+port module Main exposing (main)
 
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
 import Element exposing (..)
 import Element.Background as Background
+import Element.Events as Events
 import Element.Font as Font
-import Html.Attributes exposing (class, src)
+import Element.Lazy exposing (lazy)
+import Html.Attributes exposing (class)
+import Mod exposing (Mod)
 import Page.Search as Search
+import Page.Welcome as Welcome
 import Route exposing (Route)
-import Styles exposing (colors, edges)
+import Styles exposing (colors, edges, sizes)
 import Url exposing (Url)
 
 
-main : Program () Model Msg
+main : Program Flags Model Msg
 main =
     Browser.application
         { init = init
@@ -24,12 +28,43 @@ main =
         }
 
 
-init : () -> Url -> Nav.Key -> ( Model, Cmd Msg )
-init _ url navKey =
+
+-- PORTS
+
+
+port sendMinimize : () -> Cmd msg
+
+
+port sendMaximize : () -> Cmd msg
+
+
+port sendUnmaximize : () -> Cmd msg
+
+
+port sendExit : () -> Cmd msg
+
+
+
+-- MODEL
+
+
+init : Flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
+init flags url navKey =
     let
+        urlIntercept =
+            case flags.modPath of
+                "" ->
+                    { url | path = "/welcome" }
+
+                _ ->
+                    url
+
         model =
-            { route = Route.parseUrl url
-            , page = SearchPage Search.initialModel
+            { modPath = flags.modPath
+            , installedMods = flags.installedMods
+            , isMaximized = flags.isMaximized
+            , route = Route.parseUrl urlIntercept
+            , page = None
             , navKey = navKey
             }
     in
@@ -44,23 +79,36 @@ initCurrentPage ( model, existingCmds ) =
                 Route.Search ->
                     let
                         ( pageModel, pageCmds ) =
-                            Search.init
+                            Search.init { installedMods = model.installedMods }
                     in
                     ( SearchPage pageModel, Cmd.map SearchPageMsg pageCmds )
+
+                Route.Welcome ->
+                    let
+                        ( pageModel, pageCmds ) =
+                            Welcome.init
+                    in
+                    ( WelcomePage pageModel, Cmd.map WelcomePageMsg pageCmds )
     in
     ( { model | page = currentPage }
     , Cmd.batch [ existingCmds, mappedPageCmds ]
     )
 
 
-
--- MODEL
-
-
 type alias Model =
-    { route : Route
+    { modPath : String
+    , installedMods : List Mod
+    , isMaximized : Bool
+    , route : Route
     , page : Page
     , navKey : Nav.Key
+    }
+
+
+type alias Flags =
+    { modPath : String
+    , installedMods : List Mod
+    , isMaximized : Bool
     }
 
 
@@ -71,16 +119,32 @@ type alias Model =
 type Msg
     = ChangedUrl Url
     | ClickedLink UrlRequest
+    | Minimize
+    | Maximize
+    | Unmaximize
+    | Exit
+    | WelcomePageMsg Welcome.Msg
     | SearchPageMsg Search.Msg
 
 
 type Page
-    = SearchPage Search.Model
+    = None
+    | WelcomePage Welcome.Model
+    | SearchPage Search.Model
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case ( msg, model.page ) of
+        ( WelcomePageMsg pageMsg, WelcomePage pageModel ) ->
+            let
+                ( updatedPageModel, updatedCmd ) =
+                    Welcome.update pageMsg pageModel
+            in
+            ( { model | page = WelcomePage updatedPageModel }
+            , Cmd.map WelcomePageMsg updatedCmd
+            )
+
         ( SearchPageMsg pageMsg, SearchPage pageModel ) ->
             let
                 ( updatedPageModel, updatedCmd ) =
@@ -97,9 +161,9 @@ update msg model =
                     , Nav.pushUrl model.navKey (Url.toString url)
                     )
 
-                Browser.External url ->
+                Browser.External _ ->
                     ( model
-                    , Nav.load url
+                    , Cmd.none
                     )
 
         ( ChangedUrl url, _ ) ->
@@ -110,6 +174,21 @@ update msg model =
             ( { model | route = newRoute }, Cmd.none )
                 |> initCurrentPage
 
+        ( Minimize, _ ) ->
+            ( model, sendMinimize () )
+
+        ( Maximize, _ ) ->
+            ( { model | isMaximized = True }, sendMaximize () )
+
+        ( Unmaximize, _ ) ->
+            ( { model | isMaximized = False }, sendUnmaximize () )
+
+        ( Exit, _ ) ->
+            ( model, sendExit () )
+
+        ( _, _ ) ->
+            ( model, Cmd.none )
+
 
 
 -- VIEW
@@ -117,6 +196,15 @@ update msg model =
 
 view : Model -> Document Msg
 view model =
+    let
+        viewHeaderMaybe =
+            case model.modPath of
+                "" ->
+                    none
+
+                _ ->
+                    viewHeader
+    in
     { title = "MPM"
     , body =
         [ Element.layout
@@ -129,17 +217,25 @@ view model =
             ]
             (column
                 [ width fill ]
-                [ viewTitleBar
-                , viewHeader
-                , viewPage model.page
+                [ viewTitleBar model.isMaximized
+                , viewHeaderMaybe
+                , lazy viewPage model.page
                 ]
             )
         ]
     }
 
 
-viewTitleBar : Element msg
-viewTitleBar =
+viewTitleBar : Bool -> Element Msg
+viewTitleBar isMaximized =
+    let
+        ( maximizedIcon, maximizedMsg ) =
+            if isMaximized then
+                ( "unmaximize.svg", Unmaximize )
+
+            else
+                ( "maximize.svg", Maximize )
+    in
     el
         [ width fill
         , Background.color colors.backgroundColorfulDark
@@ -150,18 +246,21 @@ viewTitleBar =
             , alignRight
             ]
             [ viewTitleBarButton colors.background
+                [ Events.onMouseUp Minimize ]
                 (image [ height (px 12), centerX, centerY ]
                     { src = "/assets/icons/minimize.svg"
                     , description = "Minimize the window"
                     }
                 )
             , viewTitleBarButton colors.background
+                [ Events.onMouseUp maximizedMsg ]
                 (image [ height (px 12), centerX, centerY ]
-                    { src = "/assets/icons/maximize.svg"
+                    { src = "/assets/icons/" ++ maximizedIcon
                     , description = "Maximize the window"
                     }
                 )
             , viewTitleBarButton colors.danger
+                [ Events.onMouseUp Exit ]
                 (image [ height (px 16), centerX, centerY ]
                     { src = "/assets/icons/exit.svg"
                     , description = "Exit the app"
@@ -171,15 +270,17 @@ viewTitleBar =
         )
 
 
-viewTitleBarButton : Color -> Element msg -> Element msg
-viewTitleBarButton hoverColor children =
+viewTitleBarButton : Color -> List (Attribute msg) -> Element msg -> Element msg
+viewTitleBarButton hoverColor attrs children =
     el
-        [ height fill
-        , width (px 25)
-        , mouseOver [ Background.color hoverColor ]
-        , htmlAttribute (class "non-draggable")
-        , pointer
-        ]
+        (attrs
+            ++ [ height fill
+               , width (px 25)
+               , mouseOver [ Background.color hoverColor ]
+               , htmlAttribute (class "non-draggable")
+               , pointer
+               ]
+        )
         children
 
 
@@ -192,7 +293,7 @@ viewHeader =
         (el [ centerX ]
             (row
                 [ height fill
-                , width (px 800)
+                , width sizes.content
                 , centerY
                 , spaceEvenly
                 , paddingEach { edges | top = 12, bottom = 12 }
@@ -237,6 +338,13 @@ viewInstalledLink =
 viewPage : Page -> Element Msg
 viewPage page =
     case page of
+        None ->
+            none
+
         SearchPage model ->
             Search.view model
                 |> Element.map SearchPageMsg
+
+        WelcomePage model ->
+            Welcome.view model
+                |> Element.map WelcomePageMsg

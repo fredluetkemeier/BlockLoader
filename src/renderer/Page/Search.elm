@@ -1,4 +1,4 @@
-module Page.Search exposing (Model, Msg, init, initialModel, update, view)
+module Page.Search exposing (Model, Msg, init, update, view)
 
 import Element exposing (..)
 import Element.Background as Background
@@ -10,9 +10,10 @@ import GraphQl exposing (Named, Operation, Query)
 import GraphQl.Http as GraphQl
 import Json.Decode as Decode exposing (Decoder, field, list, string)
 import Json.Decode.Pipeline exposing (required)
+import Mod exposing (Mod)
 import Process
 import RemoteData exposing (WebData)
-import Styles exposing (colors, edges)
+import Styles exposing (colors, edges, sizes)
 import Task
 import Time
 
@@ -21,17 +22,17 @@ import Time
 -- INIT
 
 
-init : ( Model, Cmd Msg )
-init =
+init : Flags -> ( Model, Cmd Msg )
+init flags =
+    let
+        initialModel =
+            { searchTerm = ""
+            , lastInputTime = 0
+            , results = RemoteData.Loading
+            , installedMods = flags.installedMods
+            }
+    in
     ( initialModel, findMods initialModel.searchTerm )
-
-
-initialModel : Model
-initialModel =
-    { searchTerm = ""
-    , lastInputTime = 0
-    , results = RemoteData.Loading
-    }
 
 
 debounceTime : Int
@@ -47,12 +48,12 @@ type alias Model =
     { searchTerm : String
     , lastInputTime : Int
     , results : WebData (List Mod)
+    , installedMods : List Mod
     }
 
 
-type alias Mod =
-    { id : String
-    , name : String
+type alias Flags =
+    { installedMods : List Mod
     }
 
 
@@ -145,7 +146,7 @@ view : Model -> Element Msg
 view model =
     column
         [ centerX
-        , width (px 800)
+        , width sizes.content
         ]
         [ lazy viewSearchInput model.searchTerm
         , lazy viewContent model.results

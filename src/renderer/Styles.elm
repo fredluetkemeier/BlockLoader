@@ -1,6 +1,6 @@
 module Styles exposing (..)
 
-import Element exposing (rgb255)
+import Element exposing (px, rgb255)
 
 
 colors =
@@ -12,6 +12,11 @@ colors =
     , fontLight = rgb255 163 163 163
     , accent = rgb255 204 240 255
     , danger = rgb255 204 65 65
+    }
+
+
+sizes =
+    { content = px 800
     }
 
 

@@ -1,0 +1,47 @@
+const electron = require('electron');
+const path = require('path');
+const fs = require('fs');
+
+class Store {
+    constructor({ configName, initialData }) {
+        const userDataPath = (electron.app || electron.remote.app).getPath(
+            'userData'
+        );
+
+        this.path = path.join(userDataPath, configName + '.json');
+
+        if (!fs.existsSync(this.path)) {
+            createFile(this.path, initialData);
+        }
+
+        this.data = parseData(this.path, initialData);
+    }
+
+    getAll() {
+        return this.data;
+    }
+
+    get(key) {
+        return this.data[key];
+    }
+
+    set(key, data) {
+        this.data[key] = data;
+
+        fs.writeFileSync(this.path, JSON.stringify(this.data));
+    }
+}
+
+module.exports = Store;
+
+function createFile(path, data) {
+    fs.writeFileSync(path, JSON.stringify(data));
+}
+
+function parseData(path, initialData) {
+    try {
+        return JSON.parse(fs.readFileSync(path));
+    } catch (error) {
+        return initialData;
+    }
+}
