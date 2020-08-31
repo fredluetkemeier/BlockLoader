@@ -10,7 +10,6 @@ import GraphQl exposing (Named, Operation, Query)
 import GraphQl.Http as GraphQl
 import Json.Decode as Decode exposing (Decoder, field, list, string)
 import Json.Decode.Pipeline exposing (required)
-import Mod exposing (Mod)
 import Process
 import RemoteData exposing (WebData)
 import Styles exposing (colors, edges, sizes)
@@ -50,6 +49,12 @@ type alias Model =
 
 type alias Flags =
     { installedMods : List Mod
+    }
+
+
+type alias Mod =
+    { id : String
+    , name : String
     }
 
 

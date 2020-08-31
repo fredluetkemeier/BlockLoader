@@ -8,12 +8,11 @@ import Element.Events as Events
 import Element.Font as Font
 import Element.Lazy exposing (lazy)
 import Html.Attributes exposing (class)
-import Mod exposing (Mod)
 import Page.Search as Search
 import Page.Welcome as Welcome
 import Route exposing (Route)
 import Styles exposing (colors, edges, sizes)
-import Url exposing (Url)
+import Url as Url exposing (Protocol(..), Url)
 
 
 main : Program Flags Model Msg
@@ -22,7 +21,7 @@ main =
         { init = init
         , view = view
         , update = update
-        , subscriptions = \_ -> Sub.none
+        , subscriptions = subscriptions
         , onUrlRequest = ClickedLink
         , onUrlChange = ChangedUrl
         }
@@ -38,10 +37,10 @@ port sendMinimize : () -> Cmd msg
 port sendMaximize : () -> Cmd msg
 
 
-port sendUnmaximize : () -> Cmd msg
-
-
 port sendExit : () -> Cmd msg
+
+
+port changedUrl : (String -> msg) -> Sub msg
 
 
 
@@ -62,7 +61,6 @@ init flags url navKey =
         model =
             { modPath = flags.modPath
             , installedMods = flags.installedMods
-            , isMaximized = flags.isMaximized
             , route = Route.parseUrl urlIntercept
             , page = None
             , navKey = navKey
@@ -98,7 +96,6 @@ initCurrentPage ( model, existingCmds ) =
 type alias Model =
     { modPath : String
     , installedMods : List Mod
-    , isMaximized : Bool
     , route : Route
     , page : Page
     , navKey : Nav.Key
@@ -108,7 +105,12 @@ type alias Model =
 type alias Flags =
     { modPath : String
     , installedMods : List Mod
-    , isMaximized : Bool
+    }
+
+
+type alias Mod =
+    { id : String
+    , name : String
     }
 
 
@@ -121,7 +123,6 @@ type Msg
     | ClickedLink UrlRequest
     | Minimize
     | Maximize
-    | Unmaximize
     | Exit
     | WelcomePageMsg Welcome.Msg
     | SearchPageMsg Search.Msg
@@ -141,7 +142,10 @@ update msg model =
                 ( updatedPageModel, updatedCmd ) =
                     Welcome.update pageMsg pageModel
             in
-            ( { model | page = WelcomePage updatedPageModel }
+            ( { model
+                | page = WelcomePage updatedPageModel
+                , modPath = updatedPageModel.path
+              }
             , Cmd.map WelcomePageMsg updatedCmd
             )
 
@@ -178,16 +182,54 @@ update msg model =
             ( model, sendMinimize () )
 
         ( Maximize, _ ) ->
-            ( { model | isMaximized = True }, sendMaximize () )
-
-        ( Unmaximize, _ ) ->
-            ( { model | isMaximized = False }, sendUnmaximize () )
+            ( model, sendMaximize () )
 
         ( Exit, _ ) ->
             ( model, sendExit () )
 
         ( _, _ ) ->
             ( model, Cmd.none )
+
+
+
+-- SUBSCRIPTIONS
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    let
+        pageSubscriptions =
+            case model.page of
+                WelcomePage pageModel ->
+                    Sub.map WelcomePageMsg (Welcome.subscriptions pageModel)
+
+                _ ->
+                    Sub.none
+    in
+    Sub.batch
+        [ pageSubscriptions
+        , changedUrl (toUrl >> ChangedUrl)
+        ]
+
+
+toUrl : String -> Url
+toUrl string =
+    let
+        maybeUrl =
+            Url.fromString string
+    in
+    case maybeUrl of
+        Just url ->
+            url
+
+        Nothing ->
+            { protocol = Http
+            , host = ""
+            , port_ = Nothing
+            , path = ""
+            , query = Nothing
+            , fragment = Nothing
+            }
 
 
 
@@ -198,8 +240,8 @@ view : Model -> Document Msg
 view model =
     let
         viewHeaderMaybe =
-            case model.modPath of
-                "" ->
+            case model.page of
+                WelcomePage _ ->
                     none
 
                 _ ->
@@ -216,8 +258,8 @@ view model =
                 ]
             ]
             (column
-                [ width fill ]
-                [ viewTitleBar model.isMaximized
+                [ width fill, height fill ]
+                [ viewTitleBar
                 , viewHeaderMaybe
                 , lazy viewPage model.page
                 ]
@@ -226,16 +268,8 @@ view model =
     }
 
 
-viewTitleBar : Bool -> Element Msg
-viewTitleBar isMaximized =
-    let
-        ( maximizedIcon, maximizedMsg ) =
-            if isMaximized then
-                ( "unmaximize.svg", Unmaximize )
-
-            else
-                ( "maximize.svg", Maximize )
-    in
+viewTitleBar : Element Msg
+viewTitleBar =
     el
         [ width fill
         , Background.color colors.backgroundColorfulDark
@@ -253,10 +287,10 @@ viewTitleBar isMaximized =
                     }
                 )
             , viewTitleBarButton colors.background
-                [ Events.onMouseUp maximizedMsg ]
+                [ Events.onMouseUp Maximize ]
                 (image [ height (px 12), centerX, centerY ]
-                    { src = "/assets/icons/" ++ maximizedIcon
-                    , description = "Maximize the window"
+                    { src = "/assets/icons/maximize.svg"
+                    , description = "Maximize or restore the window"
                     }
                 )
             , viewTitleBarButton colors.danger

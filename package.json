@@ -4,7 +4,7 @@
     "description": "A package manager for Minecraft",
     "main": "./src/main/main.js",
     "scripts": {
-        "start": "webpack & electron .",
+        "start": "electron .",
         "main:watch": "nodemon --watch ./src/main --exec \"electron .\"",
         "renderer:watch": "webpack --watch --env.dev"
     },
@@ -21,7 +21,8 @@
     "homepage": "https://github.com/fredluetkemeier/mpm#readme",
     "dependencies": {
         "custom-electron-titlebar": "^3.2.4",
-        "express": "^4.17.1"
+        "express": "^4.17.1",
+        "history": "^5.0.0"
     },
     "devDependencies": {
         "css-loader": "^4.2.1",
