@@ -1,6 +1,7 @@
 port module Main exposing (main)
 
 import Browser exposing (Document, UrlRequest)
+import Browser.Events as BrowserEvents
 import Browser.Navigation as Nav
 import Element exposing (..)
 import Element.Background as Background
@@ -115,6 +116,50 @@ type alias Mod =
 
 
 
+-- SUBSCRIPTIONS
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    let
+        pageSubscriptions =
+            case model.page of
+                WelcomePage pageModel ->
+                    Sub.map WelcomePageMsg (Welcome.subscriptions pageModel)
+
+                SearchPage pageModel ->
+                    Sub.map SearchPageMsg (Search.subscriptions pageModel)
+
+                _ ->
+                    Sub.none
+    in
+    Sub.batch
+        [ pageSubscriptions
+        , changedUrl (toUrl >> ChangedUrl)
+        ]
+
+
+toUrl : String -> Url
+toUrl string =
+    let
+        maybeUrl =
+            Url.fromString string
+    in
+    case maybeUrl of
+        Just url ->
+            url
+
+        Nothing ->
+            { protocol = Http
+            , host = ""
+            , port_ = Nothing
+            , path = ""
+            , query = Nothing
+            , fragment = Nothing
+            }
+
+
+
 -- UPDATE
 
 
@@ -192,47 +237,6 @@ update msg model =
 
 
 
--- SUBSCRIPTIONS
-
-
-subscriptions : Model -> Sub Msg
-subscriptions model =
-    let
-        pageSubscriptions =
-            case model.page of
-                WelcomePage pageModel ->
-                    Sub.map WelcomePageMsg (Welcome.subscriptions pageModel)
-
-                _ ->
-                    Sub.none
-    in
-    Sub.batch
-        [ pageSubscriptions
-        , changedUrl (toUrl >> ChangedUrl)
-        ]
-
-
-toUrl : String -> Url
-toUrl string =
-    let
-        maybeUrl =
-            Url.fromString string
-    in
-    case maybeUrl of
-        Just url ->
-            url
-
-        Nothing ->
-            { protocol = Http
-            , host = ""
-            , port_ = Nothing
-            , path = ""
-            , query = Nothing
-            , fragment = Nothing
-            }
-
-
-
 -- VIEW
 
 
@@ -258,7 +262,9 @@ view model =
                 ]
             ]
             (column
-                [ width fill, height fill ]
+                [ width fill
+                , Element.htmlAttribute (Html.Attributes.style "max-height" "100vh")
+                ]
                 [ viewTitleBar
                 , viewHeaderMaybe
                 , lazy viewPage model.page

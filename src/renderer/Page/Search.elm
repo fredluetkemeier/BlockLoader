@@ -1,4 +1,4 @@
-module Page.Search exposing (Model, Msg, init, update, view)
+module Page.Search exposing (Model, Msg, init, subscriptions, update, view)
 
 import Element exposing (..)
 import Element.Background as Background
@@ -8,6 +8,8 @@ import Element.Keyed as Keyed
 import Element.Lazy exposing (lazy)
 import GraphQl exposing (Named, Operation, Query)
 import GraphQl.Http as GraphQl
+import Html
+import Html.Attributes
 import Json.Decode as Decode exposing (Decoder, field, list, string)
 import Json.Decode.Pipeline exposing (required)
 import Process
@@ -56,6 +58,15 @@ type alias Mod =
     { id : String
     , name : String
     }
+
+
+
+-- SUBSCRIPTIONS
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Sub.none
 
 
 
@@ -148,6 +159,7 @@ view model =
     column
         [ centerX
         , width sizes.content
+        , height fill
         ]
         [ lazy viewSearchInput model.searchTerm
         , lazy viewContent model.results
@@ -160,6 +172,7 @@ viewSearchInput searchTerm =
         [ paddingEach { edges | top = 12 }
         , Font.color colors.font
         , width fill
+        , height (px 50)
         ]
         (Input.search
             [ Input.focusedOnLoad
@@ -175,7 +188,12 @@ viewSearchInput searchTerm =
 
 viewContent : WebData (List Mod) -> Element msg
 viewContent results =
-    el [ centerX, paddingEach { edges | top = 20 }, width fill ]
+    el
+        [ centerX
+        , paddingEach { edges | top = 20 }
+        , width fill
+        , height fill
+        ]
         (case results of
             RemoteData.Loading ->
                 image
@@ -198,7 +216,12 @@ viewContent results =
 
 viewMods : List Mod -> Element msg
 viewMods mods =
-    Keyed.column [ width fill ] <|
+    Keyed.column
+        [ width fill
+        , height (px 550)
+        , scrollbarY
+        ]
+    <|
         List.map viewKeyedMod mods
 
 
@@ -209,6 +232,10 @@ viewKeyedMod mod =
 
 viewMod : Mod -> Element msg
 viewMod mod =
-    row [ width fill, paddingEach { edges | top = 12 } ]
+    row
+        [ width fill
+        , paddingEach { edges | top = 20 }
+        , height (px 100)
+        ]
         [ text mod.name
         ]

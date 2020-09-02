@@ -3,18 +3,18 @@ import Store from '../store';
 import { ipcRenderer, remote } from 'electron';
 import { createBrowserHistory } from 'history';
 
+const window = remote.BrowserWindow;
+
 const store = new Store({
     configName: 'user-config',
     initialData: { modPath: '', installedMods: [] },
 });
 
-const window = remote.BrowserWindow;
+const { modPath, installedMods } = store.getAll();
 
 const history = createBrowserHistory({
     basename: location,
 });
-
-const { modPath, installedMods } = store.getAll();
 
 const app = Elm.Main.init({
     flags: {
@@ -22,6 +22,10 @@ const app = Elm.Main.init({
         installedMods,
     },
 });
+
+//
+// PORTS
+//
 
 // Navigation
 
