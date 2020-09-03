@@ -1,12 +1,16 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const { startServer } = require('./server');
+const { portscanner, findAPortNotInUse } = require('portscanner');
 
-const PORT = 5000;
-
+let PORT;
 let startupWindow;
 
 app.whenReady()
+    .then(() => findAPortNotInUse(3000, 9000))
+    .then((port) => {
+        PORT = port;
+    })
     .then(createStartupWindow)
     .then(() => startServer(PORT))
     .then(createMainWindow);

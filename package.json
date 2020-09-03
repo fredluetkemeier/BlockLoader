@@ -22,7 +22,8 @@
     "dependencies": {
         "custom-electron-titlebar": "^3.2.4",
         "express": "^4.17.1",
-        "history": "^5.0.0"
+        "history": "^5.0.0",
+        "portscanner": "^2.2.0"
     },
     "devDependencies": {
         "css-loader": "^4.2.1",

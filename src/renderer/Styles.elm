@@ -8,6 +8,7 @@ colors =
     , backgroundColorful = rgb255 90 83 167
     , backgroundColorfulDark = rgb255 59 55 92
     , backgroundLight = rgb255 69 69 69
+    , backgroundDark = rgb255 31 31 31
     , font = rgb255 227 227 227
     , fontDark = rgb255 163 163 163
     , fontLight = rgb255 242 242 242

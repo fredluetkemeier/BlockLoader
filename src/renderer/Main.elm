@@ -1,7 +1,6 @@
 port module Main exposing (main)
 
 import Browser exposing (Document, UrlRequest)
-import Browser.Events as BrowserEvents
 import Browser.Navigation as Nav
 import Element exposing (..)
 import Element.Background as Background
@@ -9,6 +8,7 @@ import Element.Events as Events
 import Element.Font as Font
 import Element.Lazy exposing (lazy)
 import Html.Attributes exposing (class)
+import Models exposing (Mod)
 import Page.Search as Search
 import Page.Welcome as Welcome
 import Route exposing (Route)
@@ -106,12 +106,6 @@ type alias Model =
 type alias Flags =
     { modPath : String
     , installedMods : List Mod
-    }
-
-
-type alias Mod =
-    { id : String
-    , name : String
     }
 
 
@@ -263,7 +257,7 @@ view model =
             ]
             (column
                 [ width fill
-                , Element.htmlAttribute (Html.Attributes.style "max-height" "100vh")
+                , height fill
                 ]
                 [ viewTitleBar
                 , viewHeaderMaybe
