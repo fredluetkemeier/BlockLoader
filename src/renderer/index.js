@@ -65,10 +65,10 @@ app.ports.savePath.subscribe((path) => store.set('modPath', path));
 
 // Search
 
-app.ports.downloadMod.subscribe(({ url, modPath, fileName }) =>
-    ipcRenderer.send('download', { url, modPath, fileName })
+app.ports.downloadMod.subscribe(({ id, url, modPath, fileName }) =>
+    ipcRenderer.send('download', { id, url, modPath, fileName })
 );
 
-ipcRenderer.on('downloadProgress', (event, progress) => {
-    console.log(progress);
-});
+ipcRenderer.on('downloadProgress', (event, { id, percentage }) =>
+    app.ports.downloadProgress.send({ id, percentage })
+);

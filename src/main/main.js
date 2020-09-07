@@ -5,6 +5,8 @@ const axios = require('axios');
 const { startServer } = require('./server');
 const { findAPortNotInUse } = require('portscanner');
 
+// STARTUP
+
 let PORT;
 let startupWindow;
 
@@ -16,6 +18,8 @@ app.whenReady()
     .then(createStartupWindow)
     .then(() => startServer(PORT))
     .then(createMainWindow);
+
+// EVENTS
 
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
@@ -30,21 +34,28 @@ app.on('activate', () => {
 });
 
 ipcMain.on('exit', () => app.exit());
-ipcMain.on('download', async (event, { url, modPath, fileName }) => {
+ipcMain.on('download', async (event, { id, url, modPath, fileName }) => {
     const { data, headers } = await axios({
         url,
         method: 'GET',
         responseType: 'stream',
     });
     const totalLength = headers['content-length'];
+    let downloaded = 0.0;
 
     const writer = fs.createWriteStream(path.resolve(modPath, fileName));
 
-    data.on('data', (chunk) =>
-        event.reply('downloadProgress', chunk.length / totalLength)
-    );
+    data.on('data', (chunk) => {
+        downloaded += chunk.length;
+        event.reply('downloadProgress', {
+            id,
+            percentage: +(downloaded / totalLength),
+        });
+    });
     data.pipe(writer);
 });
+
+// WINDOWS
 
 function createStartupWindow() {
     startupWindow = new BrowserWindow({

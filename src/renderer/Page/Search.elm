@@ -1,5 +1,6 @@
 port module Page.Search exposing (Model, Msg, init, subscriptions, update, view)
 
+import Bootstrap.Progress as ProgressBar
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -9,6 +10,7 @@ import Element.Keyed as Keyed
 import Element.Lazy exposing (lazy, lazy2)
 import GraphQl exposing (Named, Operation, Query)
 import GraphQl.Http as GraphQl
+import Html
 import Html.Attributes
 import Json.Decode as Decode exposing (Decoder, field, list, string)
 import Json.Decode.Pipeline exposing (required)
@@ -17,6 +19,7 @@ import Models exposing (InstalledMod)
 import Process
 import Progress exposing (Progress)
 import RemoteData exposing (WebData)
+import String exposing (fromFloat)
 import Styles exposing (colors, edges, sizes)
 import Task
 import Time
@@ -26,7 +29,16 @@ import Time
 -- PORTS
 
 
-port downloadMod : { url : String, modPath : String, fileName : String } -> Cmd msg
+port downloadMod :
+    { id : String
+    , url : String
+    , modPath : String
+    , fileName : String
+    }
+    -> Cmd msg
+
+
+port downloadProgress : ({ id : String, percentage : Float } -> msg) -> Sub msg
 
 
 
@@ -99,7 +111,7 @@ type alias Author =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    downloadProgress SetDownloadProgress
 
 
 
@@ -112,6 +124,7 @@ type Msg
     | Debounce Int
     | ReceivedMods (WebData (List Mod))
     | DownloadMod Mod
+    | SetDownloadProgress { id : String, percentage : Float }
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -158,11 +171,23 @@ update msg model =
             in
             ( { model | installedMods = newInstalledMod :: model.installedMods }
             , downloadMod
-                { url = mod.latestFile.url
+                { id = mod.id
+                , url = mod.latestFile.url
                 , modPath = model.modPath
                 , fileName = mod.latestFile.name
                 }
             )
+
+        SetDownloadProgress { id, percentage } ->
+            let
+                updateInstalledMod mod =
+                    if mod.id == id then
+                        { mod | progress = Progress.Loading percentage }
+
+                    else
+                        mod
+            in
+            ( { model | installedMods = List.map updateInstalledMod model.installedMods }, Cmd.none )
 
 
 areFurtherApartThan : Int -> ( Int, Int ) -> Bool
@@ -355,19 +380,19 @@ viewResult result =
             [ alignRight
             , width (px 75)
             ]
-            (el [ centerX ]
+            (el [ centerX, width fill ]
                 (case progress of
                     Progress.Loading percentage ->
-                        el [] (text (String.fromFloat percentage))
+                        viewProgressBar percentage colors.accent
 
                     Progress.Succeeded ->
                         el [] (text "Saved")
 
                     _ ->
-                        button []
+                        button [ centerX ]
                             { onPress = Just (DownloadMod mod)
                             , label =
-                                image [ height (px 20) ]
+                                image [ height (px 20), centerX ]
                                     { src = "/assets/icons/download.svg"
                                     , description = "Download this mod"
                                     }
@@ -375,6 +400,37 @@ viewResult result =
                 )
             )
         ]
+
+
+viewProgressBar : Float -> Color -> Element msg
+viewProgressBar percentage color =
+    el [ width fill, centerX ]
+        (ProgressBar.progress
+            [ ProgressBar.value (percentage * 100)
+            , ProgressBar.height 40
+            , ProgressBar.attrs [ Html.Attributes.style "background-color" (colorToHtmlString color) ]
+            , ProgressBar.wrapperAttrs
+                [ Html.Attributes.style "width" "100%"
+                , Html.Attributes.style "background-color" (colorToHtmlString colors.backgroundLight)
+                ]
+            ]
+            |> Element.html
+        )
+
+
+colorToHtmlString : Color -> String
+colorToHtmlString color =
+    let
+        { red, green, blue } =
+            toRgb color
+
+        colors =
+            [ red, green, blue ]
+                |> List.map (\percentage -> percentage * 255)
+                |> List.map fromFloat
+                |> String.join " "
+    in
+    "rgb(" ++ colors ++ ")"
 
 
 viewAuthors : List Author -> Element msg
