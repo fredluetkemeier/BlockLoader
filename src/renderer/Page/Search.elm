@@ -1,6 +1,5 @@
 port module Page.Search exposing (Model, Msg, init, subscriptions, update, view)
 
-import Bootstrap.Progress as ProgressBar
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -10,7 +9,6 @@ import Element.Keyed as Keyed
 import Element.Lazy exposing (lazy, lazy2)
 import GraphQl exposing (Named, Operation, Query)
 import GraphQl.Http as GraphQl
-import Html
 import Html.Attributes
 import Json.Decode as Decode exposing (Decoder, field, list, string)
 import Json.Decode.Pipeline exposing (required)
@@ -182,7 +180,11 @@ update msg model =
             let
                 updateInstalledMod mod =
                     if mod.id == id then
-                        { mod | progress = Progress.Loading percentage }
+                        if percentage == 1.0 then
+                            { mod | progress = Progress.Succeeded }
+
+                        else
+                            { mod | progress = Progress.Loading percentage }
 
                     else
                         mod
@@ -383,10 +385,13 @@ viewResult result =
             (el [ centerX, width fill ]
                 (case progress of
                     Progress.Loading percentage ->
-                        viewProgressBar percentage colors.accent
+                        viewProgressBar percentage colors.backgroundColorfulLight
 
                     Progress.Succeeded ->
-                        el [] (text "Saved")
+                        image [ centerX, height (px 22) ]
+                            { src = "/assets/icons/check-square.svg"
+                            , description = "This mod is installed"
+                            }
 
                     _ ->
                         button [ centerX ]
@@ -403,19 +408,36 @@ viewResult result =
 
 
 viewProgressBar : Float -> Color -> Element msg
-viewProgressBar percentage color =
-    el [ width fill, centerX ]
-        (ProgressBar.progress
-            [ ProgressBar.value (percentage * 100)
-            , ProgressBar.height 40
-            , ProgressBar.attrs [ Html.Attributes.style "background-color" (colorToHtmlString color) ]
-            , ProgressBar.wrapperAttrs
-                [ Html.Attributes.style "width" "100%"
-                , Html.Attributes.style "background-color" (colorToHtmlString colors.backgroundLight)
-                ]
-            ]
-            |> Element.html
-        )
+viewProgressBar fillAmount color =
+    let
+        fillColorRgb =
+            colorToHtmlString color
+
+        backgroundColorRgb =
+            colorToHtmlString colors.backgroundMedium
+
+        percentage =
+            fillAmount * 100
+
+        fillGradientAttr =
+            "linear-gradient(to right, "
+                ++ fillColorRgb
+                ++ ", "
+                ++ fillColorRgb
+                ++ String.fromFloat percentage
+                ++ "%, "
+                ++ backgroundColorRgb
+                ++ " 0%)"
+    in
+    el
+        [ width fill
+        , height (px 10)
+        , centerX
+        , Border.rounded 10
+        , Html.Attributes.style "background" fillGradientAttr
+            |> Element.htmlAttribute
+        ]
+        none
 
 
 colorToHtmlString : Color -> String
