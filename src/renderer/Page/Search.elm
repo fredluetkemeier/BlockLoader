@@ -1,23 +1,32 @@
-module Page.Search exposing (Model, Msg, init, subscriptions, update, view)
+port module Page.Search exposing (Model, Msg, init, subscriptions, update, view)
 
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
-import Element.Input as Input
+import Element.Input as Input exposing (button)
 import Element.Keyed as Keyed
-import Element.Lazy exposing (lazy)
+import Element.Lazy exposing (lazy, lazy2)
 import GraphQl exposing (Named, Operation, Query)
 import GraphQl.Http as GraphQl
 import Html.Attributes
 import Json.Decode as Decode exposing (Decoder, field, list, string)
 import Json.Decode.Pipeline exposing (required)
-import Models exposing (Author, Mod)
+import List.Extra as List
+import Models exposing (InstalledMod)
 import Process
+import Progress exposing (Progress)
 import RemoteData exposing (WebData)
 import Styles exposing (colors, edges, sizes)
 import Task
 import Time
+
+
+
+-- PORTS
+
+
+port downloadMod : { url : String, modPath : String, fileName : String } -> Cmd msg
 
 
 
@@ -30,8 +39,9 @@ init flags =
         initialModel =
             { searchTerm = ""
             , lastInputTime = 0
-            , results = RemoteData.Loading
+            , mods = RemoteData.Loading
             , installedMods = flags.installedMods
+            , modPath = flags.modPath
             }
     in
     ( initialModel, findMods initialModel.searchTerm )
@@ -42,16 +52,44 @@ debounceTime =
     350
 
 
-type alias Model =
-    { searchTerm : String
-    , lastInputTime : Int
-    , results : WebData (List Mod)
-    , installedMods : List Mod
+type alias Flags =
+    { installedMods : List InstalledMod
+    , modPath : String
     }
 
 
-type alias Flags =
-    { installedMods : List Mod
+type alias Model =
+    { searchTerm : String
+    , lastInputTime : Int
+    , mods : WebData (List Mod)
+    , installedMods : List InstalledMod
+    , modPath : String
+    }
+
+
+type alias Result =
+    { mod : Mod
+    , progress : Progress Float
+    }
+
+
+type alias Mod =
+    { id : String
+    , name : String
+    , latestFile : File
+    , authors : List Author
+    }
+
+
+type alias File =
+    { url : String
+    , name : String
+    }
+
+
+type alias Author =
+    { id : String
+    , name : String
     }
 
 
@@ -73,22 +111,24 @@ type Msg
     | SetTime Time.Posix
     | Debounce Int
     | ReceivedMods (WebData (List Mod))
+    | DownloadMod Mod
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         SetInputText text ->
-            let
-                newModel =
-                    { model | searchTerm = text }
-            in
             case text of
                 "" ->
-                    ( newModel, findMods text )
+                    ( { model
+                        | searchTerm = text
+                        , mods = RemoteData.Loading
+                      }
+                    , findMods text
+                    )
 
                 _ ->
-                    ( newModel, Task.perform SetTime Time.now )
+                    ( { model | searchTerm = text }, Task.perform SetTime Time.now )
 
         SetTime time ->
             ( { model | lastInputTime = Time.posixToMillis time }
@@ -101,13 +141,28 @@ update msg model =
 
         Debounce currentTime ->
             if ( currentTime, model.lastInputTime ) |> areFurtherApartThan debounceTime then
-                ( { model | results = RemoteData.Loading }, findMods model.searchTerm )
+                ( { model | mods = RemoteData.Loading }, findMods model.searchTerm )
 
             else
                 ( model, Cmd.none )
 
         ReceivedMods response ->
-            ( { model | results = response }, Cmd.none )
+            ( { model | mods = response }, Cmd.none )
+
+        DownloadMod mod ->
+            let
+                newInstalledMod =
+                    { id = mod.id
+                    , progress = Progress.Loading 0.0
+                    }
+            in
+            ( { model | installedMods = newInstalledMod :: model.installedMods }
+            , downloadMod
+                { url = mod.latestFile.url
+                , modPath = model.modPath
+                , fileName = mod.latestFile.name
+                }
+            )
 
 
 areFurtherApartThan : Int -> ( Int, Int ) -> Bool
@@ -134,6 +189,11 @@ findModsQuery searchTerm =
             |> GraphQl.withSelectors
                 [ GraphQl.field "id"
                 , GraphQl.field "name"
+                , GraphQl.field "latestFile"
+                    |> GraphQl.withSelectors
+                        [ GraphQl.field "url"
+                        , GraphQl.field "name"
+                        ]
                 , GraphQl.field "authors"
                     |> GraphQl.withSelectors
                         [ GraphQl.field "id"
@@ -148,7 +208,15 @@ modDecoder =
     Decode.succeed Mod
         |> required "id" string
         |> required "name" string
+        |> required "latestFile" fileDecoder
         |> required "authors" (list authorDecoder)
+
+
+fileDecoder : Decoder File
+fileDecoder =
+    Decode.succeed File
+        |> required "url" string
+        |> required "name" string
 
 
 authorDecoder : Decoder Author
@@ -170,7 +238,7 @@ view model =
         , paddingEach { edges | top = 12 }
         ]
         [ lazy viewSearchInput model.searchTerm
-        , lazy viewContent model.results
+        , lazy2 viewContent model.mods model.installedMods
         ]
 
 
@@ -186,20 +254,20 @@ viewSearchInput searchTerm =
         ]
         { onChange = SetInputText
         , text = searchTerm
-        , placeholder = Just (Input.placeholder [ Font.color colors.fontLight ] (text "Start typing to search"))
+        , placeholder = Just (Input.placeholder [ Font.color colors.fontDark ] (text "Start typing to search"))
         , label = Input.labelHidden "Start typing to search"
         }
 
 
-viewContent : WebData (List Mod) -> Element msg
-viewContent results =
+viewContent : WebData (List Mod) -> List InstalledMod -> Element Msg
+viewContent remoteMods installedMods =
     el
         [ centerX
         , paddingEach { edges | top = 20 }
         , width fill
         , Element.htmlAttribute (Html.Attributes.style "position" "relative")
         ]
-        (case results of
+        (case remoteMods of
             RemoteData.Loading ->
                 image
                     [ height (px 50), centerX ]
@@ -208,7 +276,28 @@ viewContent results =
                     }
 
             RemoteData.Success mods ->
-                viewMods mods
+                let
+                    findInstalledMod modId =
+                        List.find (\installed -> installed.id == modId) installedMods
+
+                    toResult mod =
+                        let
+                            progress =
+                                case findInstalledMod mod.id of
+                                    Just installed ->
+                                        installed.progress
+
+                                    Nothing ->
+                                        Progress.NotStarted
+                        in
+                        { mod = mod
+                        , progress = progress
+                        }
+
+                    results =
+                        List.map toResult mods
+                in
+                viewResults results
 
             RemoteData.Failure _ ->
                 el [ Font.size 18 ]
@@ -219,24 +308,28 @@ viewContent results =
         )
 
 
-viewMods : List Mod -> Element msg
-viewMods mods =
+viewResults : List Result -> Element Msg
+viewResults result =
     Keyed.column
         [ width fill
         , height fill
         , spacing 10
         ]
     <|
-        List.map viewKeyedMod mods
+        List.map viewKeyedResult result
 
 
-viewKeyedMod : Mod -> ( String, Element msg )
-viewKeyedMod mod =
-    ( mod.id, viewMod mod )
+viewKeyedResult : Result -> ( String, Element Msg )
+viewKeyedResult result =
+    ( result.mod.id, viewResult result )
 
 
-viewMod : Mod -> Element msg
-viewMod mod =
+viewResult : Result -> Element Msg
+viewResult result =
+    let
+        { mod, progress } =
+            result
+    in
     row
         [ width fill
         , padding 20
@@ -258,11 +351,28 @@ viewMod mod =
                 (text mod.name)
             , viewAuthors mod.authors
             ]
-        , el [ alignRight, width (px 50) ]
-            (image [ height (px 20) ]
-                { src = "/assets/icons/download.svg"
-                , description = "Download this mod"
-                }
+        , el
+            [ alignRight
+            , width (px 75)
+            ]
+            (el [ centerX ]
+                (case progress of
+                    Progress.Loading percentage ->
+                        el [] (text (String.fromFloat percentage))
+
+                    Progress.Succeeded ->
+                        el [] (text "Saved")
+
+                    _ ->
+                        button []
+                            { onPress = Just (DownloadMod mod)
+                            , label =
+                                image [ height (px 20) ]
+                                    { src = "/assets/icons/download.svg"
+                                    , description = "Download this mod"
+                                    }
+                            }
+                )
             )
         ]
 

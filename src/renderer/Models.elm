@@ -1,14 +1,9 @@
-module Models exposing (Author, Mod)
+module Models exposing (..)
+
+import Progress exposing (Progress)
 
 
-type alias Mod =
+type alias InstalledMod =
     { id : String
-    , name : String
-    , authors : List Author
-    }
-
-
-type alias Author =
-    { id : String
-    , name : String
+    , progress : Progress Float
     }

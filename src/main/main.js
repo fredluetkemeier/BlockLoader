@@ -1,7 +1,9 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
+const fs = require('fs');
+const axios = require('axios');
 const { startServer } = require('./server');
-const { portscanner, findAPortNotInUse } = require('portscanner');
+const { findAPortNotInUse } = require('portscanner');
 
 let PORT;
 let startupWindow;
@@ -28,6 +30,21 @@ app.on('activate', () => {
 });
 
 ipcMain.on('exit', () => app.exit());
+ipcMain.on('download', async (event, { url, modPath, fileName }) => {
+    const { data, headers } = await axios({
+        url,
+        method: 'GET',
+        responseType: 'stream',
+    });
+    const totalLength = headers['content-length'];
+
+    const writer = fs.createWriteStream(path.resolve(modPath, fileName));
+
+    data.on('data', (chunk) =>
+        event.reply('downloadProgress', chunk.length / totalLength)
+    );
+    data.pipe(writer);
+});
 
 function createStartupWindow() {
     startupWindow = new BrowserWindow({

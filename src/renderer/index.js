@@ -62,3 +62,13 @@ app.ports.choosePath.subscribe(() => {
 });
 
 app.ports.savePath.subscribe((path) => store.set('modPath', path));
+
+// Search
+
+app.ports.downloadMod.subscribe(({ url, modPath, fileName }) =>
+    ipcRenderer.send('download', { url, modPath, fileName })
+);
+
+ipcRenderer.on('downloadProgress', (event, progress) => {
+    console.log(progress);
+});

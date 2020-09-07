@@ -8,9 +8,10 @@ import Element.Events as Events
 import Element.Font as Font
 import Element.Lazy exposing (lazy)
 import Html.Attributes exposing (class)
-import Models exposing (Mod)
+import Models exposing (InstalledMod)
 import Page.Search as Search
 import Page.Welcome as Welcome
+import Progress
 import Route exposing (Route)
 import Styles exposing (colors, edges, sizes)
 import Url as Url exposing (Protocol(..), Url)
@@ -59,9 +60,14 @@ init flags url navKey =
                 _ ->
                     url
 
+        toInstalledMod savedMod =
+            { id = savedMod.id
+            , progress = Progress.Succeeded
+            }
+
         model =
             { modPath = flags.modPath
-            , installedMods = flags.installedMods
+            , installedMods = List.map toInstalledMod flags.installedMods
             , route = Route.parseUrl urlIntercept
             , page = None
             , navKey = navKey
@@ -78,7 +84,10 @@ initCurrentPage ( model, existingCmds ) =
                 Route.Search ->
                     let
                         ( pageModel, pageCmds ) =
-                            Search.init { installedMods = model.installedMods }
+                            Search.init
+                                { installedMods = model.installedMods
+                                , modPath = model.modPath
+                                }
                     in
                     ( SearchPage pageModel, Cmd.map SearchPageMsg pageCmds )
 
@@ -94,18 +103,23 @@ initCurrentPage ( model, existingCmds ) =
     )
 
 
-type alias Model =
+type alias Flags =
     { modPath : String
-    , installedMods : List Mod
-    , route : Route
-    , page : Page
-    , navKey : Nav.Key
+    , installedMods : List SavedMod
     }
 
 
-type alias Flags =
+type alias SavedMod =
+    { id : String
+    }
+
+
+type alias Model =
     { modPath : String
-    , installedMods : List Mod
+    , installedMods : List InstalledMod
+    , route : Route
+    , page : Page
+    , navKey : Nav.Key
     }
 
 
