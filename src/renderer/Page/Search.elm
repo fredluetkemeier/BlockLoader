@@ -1,5 +1,6 @@
 port module Page.Search exposing (Model, Msg, init, subscriptions, update, view)
 
+import Context exposing (Context)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -43,15 +44,13 @@ port downloadProgress : ({ id : String, percentage : Float } -> msg) -> Sub msg
 -- MODEL
 
 
-init : Flags -> ( Model, Cmd Msg )
-init flags =
+init : ( Model, Cmd Msg )
+init =
     let
         initialModel =
             { searchTerm = ""
             , lastInputTime = 0
             , mods = RemoteData.Loading
-            , installedMods = flags.installedMods
-            , modPath = flags.modPath
             }
     in
     ( initialModel, findMods initialModel.searchTerm )
@@ -62,9 +61,9 @@ debounceTime =
     350
 
 
-type alias Flags =
-    { installedMods : List InstalledMod
-    , modPath : String
+type alias Result =
+    { mod : Mod
+    , progress : Progress Float
     }
 
 
@@ -72,14 +71,6 @@ type alias Model =
     { searchTerm : String
     , lastInputTime : Int
     , mods : WebData (List Mod)
-    , installedMods : List InstalledMod
-    , modPath : String
-    }
-
-
-type alias Result =
-    { mod : Mod
-    , progress : Progress Float
     }
 
 
@@ -125,13 +116,14 @@ type Msg
     | SetDownloadProgress { id : String, percentage : Float }
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update : Context -> Msg -> Model -> ( Context, Model, Cmd Msg )
+update context msg model =
     case msg of
         SetInputText text ->
             case text of
                 "" ->
-                    ( { model
+                    ( context
+                    , { model
                         | searchTerm = text
                         , mods = RemoteData.Loading
                       }
@@ -139,10 +131,11 @@ update msg model =
                     )
 
                 _ ->
-                    ( { model | searchTerm = text }, Task.perform SetTime Time.now )
+                    ( context, { model | searchTerm = text }, Task.perform SetTime Time.now )
 
         SetTime time ->
-            ( { model | lastInputTime = Time.posixToMillis time }
+            ( context
+            , { model | lastInputTime = Time.posixToMillis time }
             , Task.perform
                 Debounce
                 (Process.sleep (toFloat debounceTime)
@@ -152,13 +145,13 @@ update msg model =
 
         Debounce currentTime ->
             if ( currentTime, model.lastInputTime ) |> areFurtherApartThan debounceTime then
-                ( { model | mods = RemoteData.Loading }, findMods model.searchTerm )
+                ( context, { model | mods = RemoteData.Loading }, findMods model.searchTerm )
 
             else
-                ( model, Cmd.none )
+                ( context, model, Cmd.none )
 
         ReceivedMods response ->
-            ( { model | mods = response }, Cmd.none )
+            ( context, { model | mods = response }, Cmd.none )
 
         DownloadMod mod ->
             let
@@ -167,11 +160,12 @@ update msg model =
                     , progress = Progress.Loading 0.0
                     }
             in
-            ( { model | installedMods = newInstalledMod :: model.installedMods }
+            ( { context | installedMods = newInstalledMod :: context.installedMods }
+            , model
             , downloadMod
                 { id = mod.id
                 , url = mod.latestFile.url
-                , modPath = model.modPath
+                , modPath = context.modPath
                 , fileName = mod.latestFile.name
                 }
             )
@@ -180,16 +174,12 @@ update msg model =
             let
                 updateInstalledMod mod =
                     if mod.id == id then
-                        if percentage == 1.0 then
-                            { mod | progress = Progress.Succeeded }
-
-                        else
-                            { mod | progress = Progress.Loading percentage }
+                        { mod | progress = Progress.Loading percentage }
 
                     else
                         mod
             in
-            ( { model | installedMods = List.map updateInstalledMod model.installedMods }, Cmd.none )
+            ( { context | installedMods = List.map updateInstalledMod context.installedMods }, model, Cmd.none )
 
 
 areFurtherApartThan : Int -> ( Int, Int ) -> Bool
@@ -257,15 +247,15 @@ authorDecoder =
 -- VIEW
 
 
-view : Model -> Element Msg
-view model =
+view : Context -> Model -> Element Msg
+view context model =
     column
         [ centerX
         , width sizes.content
         , paddingEach { edges | top = 12 }
         ]
         [ lazy viewSearchInput model.searchTerm
-        , lazy2 viewContent model.mods model.installedMods
+        , lazy2 viewContent context.installedMods model.mods
         ]
 
 
@@ -286,15 +276,15 @@ viewSearchInput searchTerm =
         }
 
 
-viewContent : WebData (List Mod) -> List InstalledMod -> Element Msg
-viewContent remoteMods installedMods =
+viewContent : List InstalledMod -> WebData (List Mod) -> Element Msg
+viewContent installedMods modResults =
     el
         [ centerX
         , paddingEach { edges | top = 20 }
         , width fill
         , Element.htmlAttribute (Html.Attributes.style "position" "relative")
         ]
-        (case remoteMods of
+        (case modResults of
             RemoteData.Loading ->
                 image
                     [ height (px 50), centerX ]

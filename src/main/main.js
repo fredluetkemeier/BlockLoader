@@ -52,7 +52,10 @@ ipcMain.on('download', async (event, { id, url, modPath, fileName }) => {
             percentage: +(downloaded / totalLength),
         });
     });
+
     data.pipe(writer);
+
+    writer.on('finish', () => event.reply('downloadFinished'));
 });
 
 // WINDOWS

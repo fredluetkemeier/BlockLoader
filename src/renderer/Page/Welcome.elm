@@ -1,10 +1,10 @@
 port module Page.Welcome exposing (Model, Msg, init, subscriptions, update, view)
 
+import Context exposing (Context)
 import Element exposing (..)
 import Element.Border as Border
 import Element.Font as Font
 import Element.Input exposing (button)
-import Navigation exposing (pushUrl)
 import Styles exposing (colors, edges, sizes)
 
 
@@ -19,6 +19,9 @@ port pathChosen : (String -> msg) -> Sub msg
 
 
 port savePath : String -> Cmd msg
+
+
+port pushUrl : String -> Cmd msg
 
 
 
@@ -50,17 +53,17 @@ type Msg
     | Continue
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update : Context -> Msg -> Model -> ( Context, Model, Cmd Msg )
+update context msg model =
     case msg of
         ChoosePath ->
-            ( model, choosePath () )
+            ( context, model, choosePath () )
 
         PathChosen path ->
-            ( { model | path = path }, Cmd.none )
+            ( context, { model | path = path }, Cmd.none )
 
         Continue ->
-            ( model, Cmd.batch [ savePath model.path, pushUrl "/search" ] )
+            ( { context | modPath = model.path }, model, Cmd.batch [ savePath model.path, pushUrl "/search" ] )
 
 
 
@@ -76,8 +79,8 @@ subscriptions _ =
 -- VIEW
 
 
-view : Model -> Element Msg
-view model =
+view : Context -> Model -> Element Msg
+view _ model =
     column
         [ height fill
         , width sizes.content

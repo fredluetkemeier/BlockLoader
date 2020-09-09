@@ -2,11 +2,12 @@ port module Main exposing (main)
 
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
+import Context exposing (Context)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Events as Events
 import Element.Font as Font
-import Element.Lazy exposing (lazy)
+import Element.Lazy exposing (lazy, lazy2)
 import Html.Attributes exposing (class)
 import Models exposing (InstalledMod)
 import Page.Search as Search
@@ -65,15 +66,19 @@ init flags url navKey =
             , progress = Progress.Succeeded
             }
 
-        model =
+        initialContext =
             { modPath = flags.modPath
             , installedMods = List.map toInstalledMod flags.installedMods
-            , route = Route.parseUrl urlIntercept
+            }
+
+        initialModel =
+            { route = Route.parseUrl urlIntercept
             , page = None
             , navKey = navKey
+            , context = initialContext
             }
     in
-    initCurrentPage ( model, Cmd.none )
+    initCurrentPage ( initialModel, Cmd.none )
 
 
 initCurrentPage : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -85,9 +90,6 @@ initCurrentPage ( model, existingCmds ) =
                     let
                         ( pageModel, pageCmds ) =
                             Search.init
-                                { installedMods = model.installedMods
-                                , modPath = model.modPath
-                                }
                     in
                     ( SearchPage pageModel, Cmd.map SearchPageMsg pageCmds )
 
@@ -105,21 +107,15 @@ initCurrentPage ( model, existingCmds ) =
 
 type alias Flags =
     { modPath : String
-    , installedMods : List SavedMod
-    }
-
-
-type alias SavedMod =
-    { id : String
+    , installedMods : List { id : String }
     }
 
 
 type alias Model =
-    { modPath : String
-    , installedMods : List InstalledMod
-    , route : Route
+    { route : Route
     , page : Page
     , navKey : Nav.Key
+    , context : Context
     }
 
 
@@ -189,25 +185,32 @@ type Page
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
+    let
+        context =
+            model.context
+    in
     case ( msg, model.page ) of
         ( WelcomePageMsg pageMsg, WelcomePage pageModel ) ->
             let
-                ( updatedPageModel, updatedCmd ) =
-                    Welcome.update pageMsg pageModel
+                ( updatedContext, updatedPageModel, updatedCmd ) =
+                    Welcome.update context pageMsg pageModel
             in
             ( { model
                 | page = WelcomePage updatedPageModel
-                , modPath = updatedPageModel.path
+                , context = updatedContext
               }
             , Cmd.map WelcomePageMsg updatedCmd
             )
 
         ( SearchPageMsg pageMsg, SearchPage pageModel ) ->
             let
-                ( updatedPageModel, updatedCmd ) =
-                    Search.update pageMsg pageModel
+                ( updatedContext, updatedPageModel, updatedCmd ) =
+                    Search.update context pageMsg pageModel
             in
-            ( { model | page = SearchPage updatedPageModel }
+            ( { model
+                | page = SearchPage updatedPageModel
+                , context = updatedContext
+              }
             , Cmd.map SearchPageMsg updatedCmd
             )
 
@@ -275,7 +278,7 @@ view model =
                 ]
                 [ viewTitleBar
                 , viewHeaderMaybe
-                , lazy viewPage model.page
+                , lazy2 viewPage model.context model.page
                 ]
             )
         ]
@@ -383,16 +386,16 @@ viewInstalledLink =
         }
 
 
-viewPage : Page -> Element Msg
-viewPage page =
+viewPage : Context -> Page -> Element Msg
+viewPage context page =
     case page of
         None ->
             none
 
         SearchPage model ->
-            Search.view model
+            Search.view context model
                 |> Element.map SearchPageMsg
 
         WelcomePage model ->
-            Welcome.view model
+            Welcome.view context model
                 |> Element.map WelcomePageMsg
