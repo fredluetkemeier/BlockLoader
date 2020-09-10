@@ -37,9 +37,6 @@ port downloadMod :
     -> Cmd msg
 
 
-port downloadProgress : ({ id : String, percentage : Float } -> msg) -> Sub msg
-
-
 
 -- MODEL
 
@@ -100,7 +97,7 @@ type alias Author =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    downloadProgress SetDownloadProgress
+    Sub.none
 
 
 
@@ -113,7 +110,6 @@ type Msg
     | Debounce Int
     | ReceivedMods (WebData (List Mod))
     | DownloadMod Mod
-    | SetDownloadProgress { id : String, percentage : Float }
 
 
 update : Context -> Msg -> Model -> ( Context, Model, Cmd Msg )
@@ -169,17 +165,6 @@ update context msg model =
                 , fileName = mod.latestFile.name
                 }
             )
-
-        SetDownloadProgress { id, percentage } ->
-            let
-                updateInstalledMod mod =
-                    if mod.id == id then
-                        { mod | progress = Progress.Loading percentage }
-
-                    else
-                        mod
-            in
-            ( { context | installedMods = List.map updateInstalledMod context.installedMods }, model, Cmd.none )
 
 
 areFurtherApartThan : Int -> ( Int, Int ) -> Bool

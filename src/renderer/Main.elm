@@ -46,6 +46,9 @@ port sendExit : () -> Cmd msg
 port changedUrl : (String -> msg) -> Sub msg
 
 
+port downloadProgress : ({ id : String, percentage : Float } -> msg) -> Sub msg
+
+
 
 -- MODEL
 
@@ -140,6 +143,7 @@ subscriptions model =
     Sub.batch
         [ pageSubscriptions
         , changedUrl (toUrl >> ChangedUrl)
+        , downloadProgress SetDownloadProgress
         ]
 
 
@@ -168,13 +172,14 @@ toUrl string =
 
 
 type Msg
-    = ChangedUrl Url
+    = WelcomePageMsg Welcome.Msg
+    | SearchPageMsg Search.Msg
+    | ChangedUrl Url
     | ClickedLink UrlRequest
     | Minimize
     | Maximize
     | Exit
-    | WelcomePageMsg Welcome.Msg
-    | SearchPageMsg Search.Msg
+    | SetDownloadProgress { id : String, percentage : Float }
 
 
 type Page
@@ -242,6 +247,22 @@ update msg model =
 
         ( Exit, _ ) ->
             ( model, sendExit () )
+
+        ( SetDownloadProgress { id, percentage }, _ ) ->
+            let
+                updateInstalledMod mod =
+                    if mod.id == id then
+                        { mod | progress = Progress.Loading percentage }
+
+                    else
+                        mod
+
+                updatedContext =
+                    { context
+                        | installedMods = List.map updateInstalledMod context.installedMods
+                    }
+            in
+            ( { model | context = updatedContext }, Cmd.none )
 
         ( _, _ ) ->
             ( model, Cmd.none )
