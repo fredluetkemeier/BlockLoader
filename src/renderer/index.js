@@ -7,10 +7,10 @@ const window = remote.BrowserWindow;
 
 const store = new Store({
     configName: 'user-config',
-    initialData: { modPath: '', installedMods: [] },
+    initialData: { modPath: '', savedMods: [] },
 });
 
-const { modPath, installedMods } = store.getAll();
+const { modPath, savedMods } = store.getAll();
 
 const history = createBrowserHistory({
     basename: location,
@@ -19,7 +19,7 @@ const history = createBrowserHistory({
 const app = Elm.Main.init({
     flags: {
         modPath,
-        installedMods,
+        savedMods,
     },
 });
 
@@ -65,10 +65,13 @@ app.ports.savePath.subscribe((path) => store.set('modPath', path));
 
 // Search
 
-app.ports.downloadMod.subscribe(({ id, url, modPath, fileName }) =>
-    ipcRenderer.send('download', { id, url, modPath, fileName })
-);
+app.ports.downloadMod.subscribe((mod) => ipcRenderer.send('download', mod));
 
 ipcRenderer.on('downloadProgress', (event, { id, percentage }) =>
     app.ports.downloadProgress.send({ id, percentage })
 );
+
+ipcRenderer.on('downloadFinished', (event, { mod }) => {
+    const savedMods = store.get('savedMods');
+    store.set('savedMods', [...savedMods, mod]);
+});

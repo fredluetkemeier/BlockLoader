@@ -11,7 +11,7 @@ class Store {
         this.path = path.join(userDataPath, configName + '.json');
 
         if (!fs.existsSync(this.path)) {
-            createFile(this.path, initialData);
+            fs.writeFileSync(this.path, JSON.stringify(data));
         }
 
         this.data = parseData(this.path, initialData);
@@ -33,10 +33,6 @@ class Store {
 }
 
 module.exports = Store;
-
-function createFile(path, data) {
-    fs.writeFileSync(path, JSON.stringify(data));
-}
 
 function parseData(path, initialData) {
     try {

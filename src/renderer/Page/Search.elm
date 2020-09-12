@@ -14,7 +14,7 @@ import Html.Attributes
 import Json.Decode as Decode exposing (Decoder, field, list, string)
 import Json.Decode.Pipeline exposing (required)
 import List.Extra as List
-import Models exposing (InstalledMod)
+import Models exposing (InstalledMod, SavedMod, Thumbnail, thumbnailDecoder)
 import Process
 import Progress exposing (Progress)
 import RemoteData exposing (WebData)
@@ -29,10 +29,9 @@ import Time
 
 
 port downloadMod :
-    { id : String
-    , url : String
+    { url : String
     , modPath : String
-    , fileName : String
+    , mod : SavedMod
     }
     -> Cmd msg
 
@@ -47,10 +46,11 @@ init =
         initialModel =
             { searchTerm = ""
             , lastInputTime = 0
+            , lastResultTime = Nothing
             , mods = RemoteData.Loading
             }
     in
-    ( initialModel, findMods initialModel.searchTerm )
+    ( initialModel, Task.perform (Time.posixToMillis >> Search initialModel.searchTerm) Time.now )
 
 
 debounceTime : Int
@@ -67,6 +67,7 @@ type alias Result =
 type alias Model =
     { searchTerm : String
     , lastInputTime : Int
+    , lastResultTime : Maybe Int
     , mods : WebData (List Mod)
     }
 
@@ -76,12 +77,14 @@ type alias Mod =
     , name : String
     , latestFile : File
     , authors : List Author
+    , thumbnail : Thumbnail
     }
 
 
 type alias File =
     { url : String
     , name : String
+    , date : String
     }
 
 
@@ -96,7 +99,7 @@ type alias Author =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Sub.none
 
 
@@ -106,9 +109,11 @@ subscriptions model =
 
 type Msg
     = SetInputText String
-    | SetTime Time.Posix
+    | SetInputTime Int
     | Debounce Int
-    | ReceivedMods (WebData (List Mod))
+    | Search String Int
+    | ReceivedMods Int (WebData (List Mod))
+    | SetResultTime Int
     | DownloadMod Mod
 
 
@@ -123,15 +128,18 @@ update context msg model =
                         | searchTerm = text
                         , mods = RemoteData.Loading
                       }
-                    , findMods text
+                    , Task.perform (Time.posixToMillis >> Search text) Time.now
                     )
 
                 _ ->
-                    ( context, { model | searchTerm = text }, Task.perform SetTime Time.now )
+                    ( context
+                    , { model | searchTerm = text }
+                    , Task.perform (Time.posixToMillis >> SetInputTime) Time.now
+                    )
 
-        SetTime time ->
+        SetInputTime currentTime ->
             ( context
-            , { model | lastInputTime = Time.posixToMillis time }
+            , { model | lastInputTime = currentTime }
             , Task.perform
                 Debounce
                 (Process.sleep (toFloat debounceTime)
@@ -141,13 +149,35 @@ update context msg model =
 
         Debounce currentTime ->
             if ( currentTime, model.lastInputTime ) |> areFurtherApartThan debounceTime then
-                ( context, { model | mods = RemoteData.Loading }, findMods model.searchTerm )
+                ( context
+                , { model | mods = RemoteData.Loading }
+                , Task.perform (Time.posixToMillis >> Search model.searchTerm) Time.now
+                )
 
             else
                 ( context, model, Cmd.none )
 
-        ReceivedMods response ->
-            ( context, { model | mods = response }, Cmd.none )
+        Search searchTerm currentTime ->
+            ( context, model, findMods currentTime searchTerm )
+
+        ReceivedMods timeOfSearch result ->
+            let
+                ( updatedModel, newCmd ) =
+                    case model.lastResultTime of
+                        Just lastResultTime ->
+                            if timeOfSearch >= lastResultTime then
+                                ( { model | mods = result }, Task.perform (Time.posixToMillis >> SetResultTime) Time.now )
+
+                            else
+                                ( model, Cmd.none )
+
+                        Nothing ->
+                            ( { model | mods = result }, Task.perform (Time.posixToMillis >> SetResultTime) Time.now )
+            in
+            ( context, updatedModel, newCmd )
+
+        SetResultTime currentTime ->
+            ( context, { model | lastResultTime = Just currentTime }, Cmd.none )
 
         DownloadMod mod ->
             let
@@ -159,10 +189,18 @@ update context msg model =
             ( { context | installedMods = newInstalledMod :: context.installedMods }
             , model
             , downloadMod
-                { id = mod.id
-                , url = mod.latestFile.url
+                { url = mod.latestFile.url
                 , modPath = context.modPath
-                , fileName = mod.latestFile.name
+                , mod =
+                    { id = mod.id
+                    , name = mod.name
+                    , versionDate = mod.latestFile.date
+                    , fileName = mod.latestFile.name
+                    , image =
+                        { url = mod.thumbnail.url
+                        , description = mod.thumbnail.description
+                        }
+                    }
                 }
             )
 
@@ -172,14 +210,14 @@ areFurtherApartThan timeSpan ( currentTime, pastTime ) =
     currentTime - pastTime >= timeSpan
 
 
-findMods : String -> Cmd Msg
-findMods searchTerm =
+findMods : Int -> String -> Cmd Msg
+findMods timeOfSearch searchTerm =
     GraphQl.query (findModsQuery searchTerm)
         |> GraphQl.send
             { url = "http://localhost:4000/graphql"
             , headers = []
             }
-            (RemoteData.fromResult >> ReceivedMods)
+            (RemoteData.fromResult >> ReceivedMods timeOfSearch)
             (field "findMods" (list modDecoder))
 
 
@@ -195,11 +233,17 @@ findModsQuery searchTerm =
                     |> GraphQl.withSelectors
                         [ GraphQl.field "url"
                         , GraphQl.field "name"
+                        , GraphQl.field "date"
                         ]
                 , GraphQl.field "authors"
                     |> GraphQl.withSelectors
                         [ GraphQl.field "id"
                         , GraphQl.field "name"
+                        ]
+                , GraphQl.field "thumbnail"
+                    |> GraphQl.withSelectors
+                        [ GraphQl.field "url"
+                        , GraphQl.field "description"
                         ]
                 ]
         ]
@@ -212,6 +256,7 @@ modDecoder =
         |> required "name" string
         |> required "latestFile" fileDecoder
         |> required "authors" (list authorDecoder)
+        |> required "thumbnail" thumbnailDecoder
 
 
 fileDecoder : Decoder File
@@ -219,6 +264,7 @@ fileDecoder =
     Decode.succeed File
         |> required "url" string
         |> required "name" string
+        |> required "date" string
 
 
 authorDecoder : Decoder Author

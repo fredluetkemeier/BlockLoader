@@ -11,11 +11,11 @@ let PORT;
 let startupWindow;
 
 app.whenReady()
+    .then(createStartupWindow)
     .then(() => findAPortNotInUse(3000, 9000))
     .then((port) => {
         PORT = port;
     })
-    .then(createStartupWindow)
     .then(() => startServer(PORT))
     .then(createMainWindow);
 
@@ -34,7 +34,10 @@ app.on('activate', () => {
 });
 
 ipcMain.on('exit', () => app.exit());
-ipcMain.on('download', async (event, { id, url, modPath, fileName }) => {
+
+ipcMain.on('download', async (event, { url, modPath, mod }) => {
+    const { id, fileName } = mod;
+
     const { data, headers } = await axios({
         url,
         method: 'GET',
@@ -55,7 +58,7 @@ ipcMain.on('download', async (event, { id, url, modPath, fileName }) => {
 
     data.pipe(writer);
 
-    writer.on('finish', () => event.reply('downloadFinished'));
+    writer.on('finish', () => event.reply('downloadFinished', { mod }));
 });
 
 // WINDOWS

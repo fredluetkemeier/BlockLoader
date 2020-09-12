@@ -7,9 +7,10 @@ import Element exposing (..)
 import Element.Background as Background
 import Element.Events as Events
 import Element.Font as Font
-import Element.Lazy exposing (lazy, lazy2)
+import Element.Lazy exposing (lazy2)
 import Html.Attributes exposing (class)
-import Models exposing (InstalledMod)
+import List.Extra as List
+import Models exposing (SavedMod)
 import Page.Search as Search
 import Page.Welcome as Welcome
 import Progress
@@ -71,7 +72,7 @@ init flags url navKey =
 
         initialContext =
             { modPath = flags.modPath
-            , installedMods = List.map toInstalledMod flags.installedMods
+            , installedMods = List.map toInstalledMod flags.savedMods
             }
 
         initialModel =
@@ -110,7 +111,7 @@ initCurrentPage ( model, existingCmds ) =
 
 type alias Flags =
     { modPath : String
-    , installedMods : List { id : String }
+    , savedMods : List SavedMod
     }
 
 
@@ -250,9 +251,16 @@ update msg model =
 
         ( SetDownloadProgress { id, percentage }, _ ) ->
             let
+                progress =
+                    if percentage == 1.0 then
+                        Progress.Succeeded
+
+                    else
+                        Progress.Loading percentage
+
                 updateInstalledMod mod =
                     if mod.id == id then
-                        { mod | progress = Progress.Loading percentage }
+                        { mod | progress = progress }
 
                     else
                         mod
