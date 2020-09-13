@@ -19,7 +19,8 @@ import Models exposing (InstalledMod, SavedMod, Thumbnail, thumbnailDecoder)
 import Process
 import Progress exposing (Progress)
 import RemoteData exposing (WebData)
-import String exposing (fromFloat)
+import Round as Round
+import String exposing (fromFloat, toInt)
 import Styles exposing (colors, edges, sizes)
 import Task
 import Time
@@ -407,28 +408,21 @@ viewResult result =
                 [ spacing 10
                 , centerY
                 ]
-                [ el
-                    [ Font.size 22
-                    , Font.color colors.fontLight
+                [ row [ spacing 10 ]
+                    [ el
+                        [ Font.size 22
+                        , Font.color colors.fontLight
+                        ]
+                        (text mod.name)
+                    , viewDownloadCount mod.downloadCount
                     ]
-                    (text mod.name)
                 , viewAuthors mod.authors
                 ]
             ]
         , el
-            [ width fill, Font.size 12 ]
-            (el [ alignRight ]
-                (case result.progress of
-                    Progress.NotStarted ->
-                        text (abbreviatedNumber mod.downloadCount)
-
-                    _ ->
-                        none
-                )
-            )
-        , el
             [ width (px 75)
             , height fill
+            , alignRight
             ]
             (case progress of
                 Progress.Loading percentage ->
@@ -444,13 +438,23 @@ viewResult result =
                     button [ centerX, centerY ]
                         { onPress = Just (DownloadMod mod)
                         , label =
-                            image [ height (px 20), centerX ]
+                            image [ height (px 22), centerX ]
                                 { src = "/assets/icons/download.svg"
                                 , description = "Download this mod"
                                 }
                         }
             )
         ]
+
+
+viewDownloadCount : Int -> Element msg
+viewDownloadCount count =
+    el
+        [ Font.color colors.fontDark
+        , Font.size 12
+        , centerY
+        ]
+        (text ("|  " ++ abbreviate count))
 
 
 viewAuthors : List Author -> Element msg
@@ -522,26 +526,42 @@ colorToHtmlString color =
     "rgb(" ++ colors ++ ")"
 
 
-abbreviatedNumber : Int -> String
-abbreviatedNumber number =
+abbreviate : Int -> String
+abbreviate number =
     let
         abbreviations =
             Dict.fromList
-                [ ( 0, "" )
-                , ( 1, "K" )
+                [ ( 1, "K" )
                 , ( 2, "M" )
                 , ( 3, "B" )
+                , ( 4, "T" )
                 ]
 
         lengthOfNumber =
             number
                 |> String.fromInt
                 |> String.length
+                |> toFloat
 
         numberOfThousands =
-            number // 1000
+            floor ((lengthOfNumber - 1) / 3) |> toFloat
 
-        test =
-            Debug.log "test" numberOfThousands
+        shortenedNumber =
+            toFloat number
+                / (10 ^ (lengthOfNumber - 1 - (3 - numberOfThousands)))
+                |> Round.round 1
+
+        abbreviation =
+            case Dict.get numberOfThousands abbreviations of
+                Just value ->
+                    value
+
+                Nothing ->
+                    ""
     in
-    ""
+    case abbreviation of
+        "" ->
+            number |> String.fromInt
+
+        _ ->
+            String.join " " [ shortenedNumber, abbreviation ]
