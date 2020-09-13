@@ -390,14 +390,19 @@ viewResult result =
             , color = colors.backgroundDark
             }
         ]
-        [ column
-            [ height fill
-            , spacing 10
-            , centerY
-            ]
-            [ el [ Font.size 24 ]
-                (text mod.name)
-            , viewAuthors mod.authors
+        [ row [ height fill, spacing 22 ]
+            [ image [ width (px 50), centerY ]
+                { src = result.mod.thumbnail.url
+                , description = result.mod.thumbnail.description
+                }
+            , column
+                [ spacing 10
+                , centerY
+                ]
+                [ el [ Font.size 24 ]
+                    (text mod.name)
+                , viewAuthors mod.authors
+                ]
             ]
         , el
             [ alignRight
