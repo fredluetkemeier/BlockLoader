@@ -7,6 +7,7 @@ import Url.Parser exposing (..)
 type Route
     = Welcome
     | Search
+    | Installed
 
 
 parseUrl : Url -> Route
@@ -25,4 +26,5 @@ matchRoute =
         [ map Search top
         , map Welcome (s "welcome")
         , map Search (s "search")
+        , map Installed (s "installed")
         ]

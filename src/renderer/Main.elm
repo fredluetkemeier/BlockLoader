@@ -11,6 +11,7 @@ import Element.Lazy exposing (lazy2)
 import Html.Attributes exposing (class)
 import List.Extra as List
 import Models exposing (SavedMod)
+import Page.Installed as Installed
 import Page.Search as Search
 import Page.Welcome as Welcome
 import Progress
@@ -103,6 +104,13 @@ initCurrentPage ( model, existingCmds ) =
                             Welcome.init
                     in
                     ( WelcomePage pageModel, Cmd.map WelcomePageMsg pageCmds )
+
+                Route.Installed ->
+                    let
+                        ( pageModel, pageCmds ) =
+                            Installed.init
+                    in
+                    ( InstalledPage pageModel, Cmd.map InstalledPageMsg pageCmds )
     in
     ( { model | page = currentPage }
     , Cmd.batch [ existingCmds, mappedPageCmds ]
@@ -175,6 +183,7 @@ toUrl string =
 type Msg
     = WelcomePageMsg Welcome.Msg
     | SearchPageMsg Search.Msg
+    | InstalledPageMsg Installed.Msg
     | ChangedUrl Url
     | ClickedLink UrlRequest
     | Minimize
@@ -187,6 +196,7 @@ type Page
     = None
     | WelcomePage Welcome.Model
     | SearchPage Search.Model
+    | InstalledPage Installed.Model
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -379,7 +389,10 @@ viewHeader =
                 , paddingEach { edges | top = 12, bottom = 12 }
                 ]
                 [ viewLogo
-                , viewInstalledLink
+                , row [ spacing 12 ]
+                    [ viewInstalledLink
+                    , viewSettingsLink
+                    ]
                 ]
             )
         )
@@ -408,9 +421,21 @@ viewInstalledLink =
     link []
         { url = "/installed"
         , label =
-            image [ height (px 20) ]
+            image [ height (px 22) ]
                 { src = "./assets/icons/th-list.svg"
                 , description = "Installed mods icon"
+                }
+        }
+
+
+viewSettingsLink : Element msg
+viewSettingsLink =
+    link []
+        { url = "/settings"
+        , label =
+            image [ height (px 22) ]
+                { src = "./assets/icons/settings.svg"
+                , description = "Settings icon"
                 }
         }
 
@@ -428,3 +453,7 @@ viewPage context page =
         WelcomePage model ->
             Welcome.view context model
                 |> Element.map WelcomePageMsg
+
+        InstalledPage model ->
+            Installed.view context model
+                |> Element.map InstalledPageMsg
