@@ -5,6 +5,7 @@ import Element exposing (..)
 import Element.Border as Border
 import Element.Font as Font
 import Element.Input exposing (button)
+import Html.Attributes exposing (align)
 import Styles exposing (colors, edges, sizes)
 
 
@@ -99,7 +100,7 @@ viewHeading =
             (text "Welcome!")
         , paragraph [ Font.size 18 ]
             [ text "You're seeing this because your "
-            , el [ Font.extraBold ] (text "mod path")
+            , el [ Font.extraBold, Font.color colors.accentDark ] (text "mod path")
             , text " has not been set. Please set it below, so I know where to install mods for you."
             ]
         , paragraph
@@ -121,16 +122,16 @@ viewPathSelection path =
         ]
         [ row [ spacing 5, alignBottom ]
             [ el [ Font.bold, Font.size 16 ] (text "Path: ")
-            , el [ Font.extraBold, Font.size 16 ]
-                (case path of
+            , paragraph [ Font.extraBold, Font.size 16 ]
+                [ case path of
                     "" ->
                         el [ Font.color colors.danger ]
                             (text "Not Set")
 
                     _ ->
-                        el [ Font.color colors.accent ]
+                        el [ Font.color colors.accentDark ]
                             (text path)
-                )
+                ]
             ]
         , row [ width fill, spaceEvenly, alignBottom ]
             [ button
