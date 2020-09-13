@@ -1,6 +1,7 @@
 port module Page.Search exposing (Model, Msg, init, subscriptions, update, view)
 
 import Context exposing (Context)
+import Dict
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -11,8 +12,8 @@ import Element.Lazy exposing (lazy, lazy2)
 import GraphQl exposing (Named, Operation, Query)
 import GraphQl.Http as GraphQl
 import Html.Attributes
-import Json.Decode as Decode exposing (Decoder, field, list, string)
-import Json.Decode.Pipeline exposing (required)
+import Json.Decode as Decode exposing (Decoder, field, float, int, list, string)
+import Json.Decode.Pipeline exposing (optional, required)
 import List.Extra as List
 import Models exposing (InstalledMod, SavedMod, Thumbnail, thumbnailDecoder)
 import Process
@@ -75,6 +76,7 @@ type alias Model =
 type alias Mod =
     { id : String
     , name : String
+    , downloadCount : Int
     , latestFile : File
     , authors : List Author
     , thumbnail : Thumbnail
@@ -229,6 +231,7 @@ findModsQuery searchTerm =
             |> GraphQl.withSelectors
                 [ GraphQl.field "id"
                 , GraphQl.field "name"
+                , GraphQl.field "downloadCount"
                 , GraphQl.field "latestFile"
                     |> GraphQl.withSelectors
                         [ GraphQl.field "url"
@@ -254,9 +257,14 @@ modDecoder =
     Decode.succeed Mod
         |> required "id" string
         |> required "name" string
+        |> required "downloadCount" int
         |> required "latestFile" fileDecoder
         |> required "authors" (list authorDecoder)
-        |> required "thumbnail" thumbnailDecoder
+        |> optional "thumbnail"
+            thumbnailDecoder
+            { url = "/assets/icons/placeholder-thumbnail.svg"
+            , description = "A placeholder thumbnail"
+            }
 
 
 fileDecoder : Decoder File
@@ -391,46 +399,78 @@ viewResult result =
             }
         ]
         [ row [ height fill, spacing 20 ]
-            [ image [ width (px 60), centerY ]
-                { src = result.mod.thumbnail.url
-                , description = result.mod.thumbnail.description
+            [ image [ width (px 50), centerY ]
+                { src = mod.thumbnail.url
+                , description = mod.thumbnail.description
                 }
             , column
                 [ spacing 10
                 , centerY
                 ]
-                [ el [ Font.size 24 ]
+                [ el
+                    [ Font.size 22
+                    , Font.color colors.fontLight
+                    ]
                     (text mod.name)
                 , viewAuthors mod.authors
                 ]
             ]
         , el
-            [ alignRight
-            , width (px 75)
-            ]
-            (el [ centerX, width fill ]
-                (case progress of
-                    Progress.Loading percentage ->
-                        viewProgressBar percentage colors.backgroundColorfulLight
-
-                    Progress.Succeeded ->
-                        image [ centerX, height (px 22) ]
-                            { src = "/assets/icons/check-square.svg"
-                            , description = "This mod is installed"
-                            }
+            [ width fill, Font.size 12 ]
+            (el [ alignRight ]
+                (case result.progress of
+                    Progress.NotStarted ->
+                        text (abbreviatedNumber mod.downloadCount)
 
                     _ ->
-                        button [ centerX ]
-                            { onPress = Just (DownloadMod mod)
-                            , label =
-                                image [ height (px 20), centerX ]
-                                    { src = "/assets/icons/download.svg"
-                                    , description = "Download this mod"
-                                    }
-                            }
+                        none
                 )
             )
+        , el
+            [ width (px 75)
+            , height fill
+            ]
+            (case progress of
+                Progress.Loading percentage ->
+                    viewProgressBar percentage colors.backgroundColorfulLight
+
+                Progress.Succeeded ->
+                    image [ centerX, centerY, height (px 22) ]
+                        { src = "/assets/icons/check-square.svg"
+                        , description = "This mod is installed"
+                        }
+
+                _ ->
+                    button [ centerX, centerY ]
+                        { onPress = Just (DownloadMod mod)
+                        , label =
+                            image [ height (px 20), centerX ]
+                                { src = "/assets/icons/download.svg"
+                                , description = "Download this mod"
+                                }
+                        }
+            )
         ]
+
+
+viewAuthors : List Author -> Element msg
+viewAuthors authors =
+    Keyed.row [] <|
+        List.map viewKeyedAuthor authors
+
+
+viewKeyedAuthor : Author -> ( String, Element msg )
+viewKeyedAuthor author =
+    ( author.id, viewAuthor author )
+
+
+viewAuthor : Author -> Element msg
+viewAuthor author =
+    el
+        [ Font.size 14
+        , Font.color colors.fontDark
+        ]
+        (text author.name)
 
 
 viewProgressBar : Float -> Color -> Element msg
@@ -459,6 +499,7 @@ viewProgressBar fillAmount color =
         [ width fill
         , height (px 10)
         , centerX
+        , centerY
         , Border.rounded 10
         , Html.Attributes.style "background" fillGradientAttr
             |> Element.htmlAttribute
@@ -481,21 +522,26 @@ colorToHtmlString color =
     "rgb(" ++ colors ++ ")"
 
 
-viewAuthors : List Author -> Element msg
-viewAuthors authors =
-    Keyed.row [] <|
-        List.map viewKeyedAuthor authors
+abbreviatedNumber : Int -> String
+abbreviatedNumber number =
+    let
+        abbreviations =
+            Dict.fromList
+                [ ( 0, "" )
+                , ( 1, "K" )
+                , ( 2, "M" )
+                , ( 3, "B" )
+                ]
 
+        lengthOfNumber =
+            number
+                |> String.fromInt
+                |> String.length
 
-viewKeyedAuthor : Author -> ( String, Element msg )
-viewKeyedAuthor author =
-    ( author.id, viewAuthor author )
+        numberOfThousands =
+            number // 1000
 
-
-viewAuthor : Author -> Element msg
-viewAuthor author =
-    el
-        [ Font.size 14
-        , Font.color colors.fontDark
-        ]
-        (text author.name)
+        test =
+            Debug.log "test" numberOfThousands
+    in
+    ""
