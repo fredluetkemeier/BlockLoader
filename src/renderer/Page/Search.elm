@@ -390,8 +390,8 @@ viewResult result =
             , color = colors.backgroundDark
             }
         ]
-        [ row [ height fill, spacing 22 ]
-            [ image [ width (px 50), centerY ]
+        [ row [ height fill, spacing 20 ]
+            [ image [ width (px 60), centerY ]
                 { src = result.mod.thumbnail.url
                 , description = result.mod.thumbnail.description
                 }
@@ -494,4 +494,8 @@ viewKeyedAuthor author =
 
 viewAuthor : Author -> Element msg
 viewAuthor author =
-    el [ Font.size 14 ] (text author.name)
+    el
+        [ Font.size 14
+        , Font.color colors.fontDark
+        ]
+        (text author.name)
