@@ -12,7 +12,7 @@ import Element.Lazy exposing (lazy, lazy2)
 import GraphQl exposing (Named, Operation, Query)
 import GraphQl.Http as GraphQl
 import Html.Attributes
-import Json.Decode as Decode exposing (Decoder, field, float, int, list, string)
+import Json.Decode as Decode exposing (Decoder, field, int, list, string)
 import Json.Decode.Pipeline exposing (optional, required)
 import List.Extra as List
 import Models exposing (InstalledMod, SavedMod, Thumbnail, thumbnailDecoder)
@@ -20,7 +20,8 @@ import Process
 import Progress exposing (Progress)
 import RemoteData exposing (WebData)
 import Round as Round
-import String exposing (fromFloat, toInt)
+import String exposing (fromFloat)
+import String.Extra as String
 import Styles exposing (colors, edges, sizes)
 import Task
 import Time
@@ -399,82 +400,96 @@ viewResult result =
             , color = colors.backgroundDark
             }
         ]
-        [ row [ height fill, spacing 20 ]
-            [ image [ width (px 50), centerY ]
-                { src = mod.thumbnail.url
-                , description = mod.thumbnail.description
-                }
-            , column
-                [ spacing 10
-                , centerY
-                ]
-                [ row [ spacing 10 ]
-                    [ el
-                        [ Font.size 22
-                        , Font.color colors.fontLight
-                        ]
-                        (text mod.name)
-                    , viewDownloadCount mod.downloadCount
+        [ viewModInfo mod
+        , viewDownloadStatus progress mod
+        ]
+
+
+viewModInfo : Mod -> Element msg
+viewModInfo mod =
+    row [ height fill, spacing 20 ]
+        [ image [ width (px 50), centerY ]
+            { src = mod.thumbnail.url
+            , description = mod.thumbnail.description
+            }
+        , column
+            [ spacing 10
+            , centerY
+            ]
+            [ row [ spacing 14 ]
+                [ el
+                    [ Font.size 22
+                    , Font.color colors.fontLight
                     ]
-                , viewAuthors mod.authors
+                    (text (String.ellipsis 50 mod.name))
+                , viewDownloadCount mod.downloadCount
                 ]
+            , viewAuthors mod.authors
             ]
-        , el
-            [ width (px 75)
-            , height fill
-            , alignRight
-            ]
-            (case progress of
-                Progress.Loading percentage ->
-                    viewProgressBar percentage colors.backgroundColorfulLight
-
-                Progress.Succeeded ->
-                    image [ centerX, centerY, height (px 22) ]
-                        { src = "/assets/icons/check-square.svg"
-                        , description = "This mod is installed"
-                        }
-
-                _ ->
-                    button [ centerX, centerY ]
-                        { onPress = Just (DownloadMod mod)
-                        , label =
-                            image [ height (px 22), centerX ]
-                                { src = "/assets/icons/download.svg"
-                                , description = "Download this mod"
-                                }
-                        }
-            )
         ]
 
 
 viewDownloadCount : Int -> Element msg
 viewDownloadCount count =
     el
-        [ Font.color colors.fontDark
-        , Font.size 12
-        , centerY
-        ]
-        (text ("|  " ++ abbreviate count))
+        [ centerY ]
+        (row
+            [ spacing 5
+            , Font.color colors.fontDark
+            , Font.size 12
+            ]
+            [ image [ height (px 12) ]
+                { src = "./assets/icons/download-alt.svg"
+                , description = "Download icon"
+                }
+            , text (abbreviate count)
+            ]
+        )
 
 
 viewAuthors : List Author -> Element msg
 viewAuthors authors =
-    Keyed.row [] <|
-        List.map viewKeyedAuthor authors
-
-
-viewKeyedAuthor : Author -> ( String, Element msg )
-viewKeyedAuthor author =
-    ( author.id, viewAuthor author )
-
-
-viewAuthor : Author -> Element msg
-viewAuthor author =
+    let
+        combinedAuthors =
+            authors
+                |> List.map .name
+                |> String.join ", "
+                |> String.ellipsis 60
+    in
     el
         [ Font.size 14
         , Font.color colors.fontDark
         ]
-        (text author.name)
+        (text combinedAuthors)
+
+
+viewDownloadStatus : Progress Float -> Mod -> Element Msg
+viewDownloadStatus progress mod =
+    el
+        [ width (px 75)
+        , height fill
+        , alignRight
+        ]
+        (case progress of
+            Progress.Loading percentage ->
+                viewProgressBar percentage colors.backgroundColorfulLight
+
+            Progress.Succeeded ->
+                image [ centerX, centerY, height (px 22) ]
+                    { src = "/assets/icons/check-square.svg"
+                    , description = "This mod is installed"
+                    }
+
+            _ ->
+                button [ centerX, centerY ]
+                    { onPress = Just (DownloadMod mod)
+                    , label =
+                        image [ height (px 22), centerX ]
+                            { src = "/assets/icons/download.svg"
+                            , description = "Download this mod"
+                            }
+                    }
+        )
 
 
 viewProgressBar : Float -> Color -> Element msg
