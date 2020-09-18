@@ -9,8 +9,10 @@ import Element.Events as Events
 import Element.Font as Font
 import Element.Lazy exposing (lazy2)
 import Html.Attributes exposing (class)
+import Json.Decode as Decode exposing (Decoder, list, string)
+import Json.Decode.Pipeline exposing (required)
 import List.Extra as List
-import Models exposing (SavedMod)
+import Models exposing (InstalledMod, installedModDecoder)
 import Page.Installed as Installed
 import Page.Search as Search
 import Page.Welcome as Welcome
@@ -20,7 +22,7 @@ import Styles exposing (colors, edges, sizes)
 import Url as Url exposing (Protocol(..), Url)
 
 
-main : Program Flags Model Msg
+main : Program (Maybe String) Model Msg
 main =
     Browser.application
         { init = init
@@ -55,26 +57,16 @@ port downloadProgress : ({ id : String, percentage : Float } -> msg) -> Sub msg
 -- MODEL
 
 
-init : Flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
+init : Maybe String -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init flags url navKey =
     let
-        urlIntercept =
-            case flags.modPath of
-                "" ->
-                    { url | path = "/welcome" }
-
-                _ ->
-                    url
-
-        toInstalledMod savedMod =
-            { id = savedMod.id
-            , progress = Progress.Succeeded
-            }
-
         initialContext =
-            { modPath = flags.modPath
-            , installedMods = List.map toInstalledMod flags.savedMods
-            }
+            case flags of
+                Just flagsJson ->
+                    decodeFlags flagsJson
+
+                Nothing ->
+                    Flags "" []
 
         initialModel =
             { route = Route.parseUrl urlIntercept
@@ -82,8 +74,37 @@ init flags url navKey =
             , navKey = navKey
             , context = initialContext
             }
+
+        urlIntercept =
+            case initialContext.modPath of
+                "" ->
+                    { url | path = "/welcome" }
+
+                _ ->
+                    url
     in
     initCurrentPage ( initialModel, Cmd.none )
+
+
+decodeFlags : String -> Flags
+decodeFlags flagsJson =
+    case Decode.decodeString flagsDecoder flagsJson of
+        Ok decodedFlags ->
+            { modPath = decodedFlags.modPath
+            , installedMods = decodedFlags.installedMods
+            }
+
+        Err _ ->
+            { modPath = ""
+            , installedMods = []
+            }
+
+
+flagsDecoder : Decoder Flags
+flagsDecoder =
+    Decode.succeed Flags
+        |> required "modPath" string
+        |> required "installedMods" (list installedModDecoder)
 
 
 initCurrentPage : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -119,7 +140,7 @@ initCurrentPage ( model, existingCmds ) =
 
 type alias Flags =
     { modPath : String
-    , savedMods : List SavedMod
+    , installedMods : List InstalledMod
     }
 
 

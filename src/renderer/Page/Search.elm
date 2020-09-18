@@ -15,7 +15,7 @@ import Html.Attributes
 import Json.Decode as Decode exposing (Decoder, field, int, list, string)
 import Json.Decode.Pipeline exposing (optional, required)
 import List.Extra as List
-import Models exposing (InstalledMod, SavedMod, Thumbnail, thumbnailDecoder)
+import Models exposing (InstalledMod, Thumbnail, thumbnailDecoder)
 import Process
 import Progress exposing (Progress)
 import RemoteData exposing (WebData)
@@ -34,7 +34,16 @@ import Time
 port downloadMod :
     { url : String
     , modPath : String
-    , mod : SavedMod
+    , mod :
+        { id : String
+        , name : String
+        , versionDate : String
+        , fileName : String
+        , image :
+            { url : String
+            , description : String
+            }
+        }
     }
     -> Cmd msg
 
@@ -186,8 +195,15 @@ update context msg model =
         DownloadMod mod ->
             let
                 newInstalledMod =
-                    { id = mod.id
-                    , progress = Progress.Loading 0.0
+                    { progress = Progress.Loading 0.0
+                    , id = mod.id
+                    , name = mod.name
+                    , versionDate = mod.latestFile.date
+                    , fileName = mod.latestFile.name
+                    , image =
+                        { url = mod.thumbnail.url
+                        , description = mod.thumbnail.description
+                        }
                     }
             in
             ( { context | installedMods = newInstalledMod :: context.installedMods }

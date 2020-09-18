@@ -11,7 +11,7 @@ class Store {
         this.path = path.join(userDataPath, configName + '.json');
 
         if (!fs.existsSync(this.path)) {
-            fs.writeFileSync(this.path, JSON.stringify(data));
+            fs.writeFileSync(this.path, JSON.stringify(initialData));
         }
 
         this.data = parseData(this.path, initialData);
