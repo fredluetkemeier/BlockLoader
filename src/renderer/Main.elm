@@ -251,6 +251,18 @@ update msg model =
             , Cmd.map SearchPageMsg updatedCmd
             )
 
+        ( InstalledPageMsg pageMsg, InstalledPage pageModel ) ->
+            let
+                ( updatedContext, updatedPageModel, updatedCmd ) =
+                    Installed.update context pageMsg pageModel
+            in
+            ( { model
+                | page = InstalledPage updatedPageModel
+                , context = updatedContext
+              }
+            , Cmd.map InstalledPageMsg updatedCmd
+            )
+
         ( ClickedLink urlRequest, _ ) ->
             case urlRequest of
                 Browser.Internal url ->

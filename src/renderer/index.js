@@ -1,9 +1,8 @@
 import { Elm } from './Main';
 import Store from '../store';
-import { ipcRenderer, remote } from 'electron';
+import { ipcRenderer } from 'electron';
+import { BrowserWindow } from '@electron/remote';
 import { createBrowserHistory } from 'history';
-
-const window = remote.BrowserWindow;
 
 const store = new Store({
     configName: 'user-config',
@@ -35,10 +34,12 @@ app.ports.pushUrl.subscribe((url) => {
 });
 
 // Main
-app.ports.sendMinimize.subscribe(() => window.getFocusedWindow().minimize());
+app.ports.sendMinimize.subscribe(() =>
+    BrowserWindow.getFocusedWindow().minimize()
+);
 
 app.ports.sendMaximize.subscribe(() => {
-    const focusedWindow = window.getFocusedWindow();
+    const focusedWindow = BrowserWindow.getFocusedWindow();
     focusedWindow.isMaximized()
         ? focusedWindow.unmaximize()
         : focusedWindow.maximize();

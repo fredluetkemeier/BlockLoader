@@ -5,6 +5,8 @@ const axios = require('axios');
 const { startServer } = require('./server');
 const { findAPortNotInUse } = require('portscanner');
 
+require('@electron/remote/main').initialize();
+
 // STARTUP
 
 let PORT;
@@ -32,6 +34,8 @@ app.on('activate', () => {
         createMainWindow();
     }
 });
+
+//ipcMain.handle('exit', () => app.exit());
 
 ipcMain.on('exit', () => app.exit());
 
@@ -67,7 +71,6 @@ function createStartupWindow() {
     startupWindow = new BrowserWindow({
         width: 250,
         height: 300,
-        webPreferences: { nodeIntegration: true },
         show: false,
         movable: false,
         maximizable: false,
@@ -90,6 +93,7 @@ function createMainWindow() {
         height: 720,
         webPreferences: {
             nodeIntegration: true,
+            enableRemoteModule: true,
         },
         show: false,
         frame: false,

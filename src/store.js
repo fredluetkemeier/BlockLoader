@@ -1,12 +1,10 @@
-const electron = require('electron');
+const { app } = require('@electron/remote');
 const path = require('path');
 const fs = require('fs');
 
 class Store {
     constructor({ configName, initialData }) {
-        const userDataPath = (electron.app || electron.remote.app).getPath(
-            'userData'
-        );
+        const userDataPath = app.getPath('userData');
 
         this.path = path.join(userDataPath, configName + '.json');
 
