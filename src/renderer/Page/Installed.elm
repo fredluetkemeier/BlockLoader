@@ -6,8 +6,9 @@ import Element.Background as Background
 import Element.Border as Border
 import Element.Events as Events
 import Element.Font as Font
+import Element.Input exposing (button)
 import Element.Lazy exposing (lazy2)
-import Html.Attributes exposing (attribute, style)
+import Html.Attributes exposing (style)
 import Models exposing (InstalledMod)
 import String.Extra as String
 import Styles exposing (colors, edges, sizes)
@@ -40,6 +41,7 @@ type alias Model =
 type Msg
     = FocusCard String
     | ClearFocus
+    | UninstallMod String
 
 
 update : Context -> Msg -> Model -> ( Context, Model, Cmd Msg )
@@ -50,6 +52,9 @@ update context msg model =
 
         ClearFocus ->
             ( context, { model | inspectedCardId = Nothing }, Cmd.none )
+
+        UninstallMod id ->
+            ( context, model, Cmd.none )
 
 
 
@@ -72,7 +77,7 @@ view context model =
         , centerX
         , spacing 20
         , paddingEach { edges | top = 20 }
-        , htmlAttribute (style "height" "calc(100vh - 100px)")
+        , htmlAttribute (style "height" "calc(100vh - 80px)")
         ]
         [ viewHeading
         , lazy2 viewInstalledMods context.installedMods model.inspectedCardId
@@ -107,7 +112,13 @@ viewInstalledMods installedMods inspectedCardId =
         ]
         (wrappedRow
             [ spacing 14
-            , paddingEach { edges | top = 2, left = 2, right = 6, bottom = 2 }
+            , paddingEach
+                { edges
+                    | top = 2
+                    , left = 2
+                    , bottom = 2
+                    , right = 6
+                }
             ]
          <|
             List.map
@@ -132,16 +143,10 @@ viewMod mod ( nameHeight, imageHeight ) =
         , Events.onMouseEnter (FocusCard mod.id)
         , Events.onMouseLeave ClearFocus
         ]
-        [ image
-            [ width fill
-            , height (px imageHeight)
-            , centerX
-            , clip
-            , Border.rounded 8
-            ]
-            { src = mod.image.url
-            , description = mod.image.description
-            }
+        [ viewImage
+            imageHeight
+            mod.image.description
+            mod.image.url
         , column
             [ width (px 250)
             , height (px nameHeight)
@@ -159,8 +164,23 @@ viewMod mod ( nameHeight, imageHeight ) =
                 }
             ]
             [ viewName mod.name
+            , viewUninstallButton mod.id
             ]
         ]
+
+
+viewImage : Int -> String -> String -> Element msg
+viewImage imageHeight description url =
+    image
+        [ width fill
+        , height (px imageHeight)
+        , centerX
+        , clip
+        , Border.rounded 8
+        ]
+        { src = url
+        , description = description
+        }
 
 
 viewName : String -> Element msg
@@ -171,3 +191,16 @@ viewName name =
         , Font.color colors.fontLight
         ]
         (text (String.ellipsis 28 name))
+
+
+viewUninstallButton : String -> Element Msg
+viewUninstallButton modId =
+    button [ height (px 22), width fill ]
+        { onPress = Just (UninstallMod modId)
+        , label = text "Uninstall"
+
+        -- image []
+        --     { src = "/assets/icons/uninstall.svg"
+        --     , description = "Uninstall mod"
+        --     }
+        }

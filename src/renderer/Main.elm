@@ -423,7 +423,8 @@ viewHeader =
                 ]
                 [ viewLogo
                 , row [ spacing 12 ]
-                    [ viewInstalledLink
+                    [ viewSearchLink
+                    , viewInstalledLink
                     , viewSettingsLink
                     ]
                 ]
@@ -441,7 +442,7 @@ viewLogo =
                 , spacing 12
                 ]
                 [ image [ height (px 32) ]
-                    { src = "./assets/icons/logo.svg"
+                    { src = "/assets/icons/logo.svg"
                     , description = "The MPM logo"
                     }
                 , text "MPM"
@@ -455,7 +456,7 @@ viewInstalledLink =
         { url = "/installed"
         , label =
             image [ height (px 22) ]
-                { src = "./assets/icons/th-list.svg"
+                { src = "/assets/icons/th-list.svg"
                 , description = "Installed mods icon"
                 }
         }
@@ -467,8 +468,20 @@ viewSettingsLink =
         { url = "/settings"
         , label =
             image [ height (px 22) ]
-                { src = "./assets/icons/settings.svg"
+                { src = "/assets/icons/settings.svg"
                 , description = "Settings icon"
+                }
+        }
+
+
+viewSearchLink : Element msg
+viewSearchLink =
+    link []
+        { url = "/search"
+        , label =
+            image [ height (px 22) ]
+                { src = "./assets/icons/search.svg"
+                , description = "Search icon"
                 }
         }
 
