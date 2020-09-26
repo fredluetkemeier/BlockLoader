@@ -107,17 +107,18 @@ viewInstalledMods installedMods inspectedCardId =
     el
         [ height fill
         , width fill
+        , moveLeft 4
         , centerX
         , scrollbarY
         ]
         (wrappedRow
-            [ spacing 14
+            [ spacing 12
             , paddingEach
                 { edges
-                    | top = 2
-                    , left = 2
-                    , bottom = 2
-                    , right = 6
+                    | top = 6
+                    , left = 6
+                    , bottom = 6
+                    , right = 8
                 }
             ]
          <|
@@ -132,14 +133,16 @@ viewMod mod ( nameHeight, imageHeight ) =
     column
         [ height (px 300)
         , width (px 250)
-        , padding 10
+
+        -- , paddingEach { edges | top = 2, left = 2, right = 2 }
         , Border.rounded 8
         , Border.shadow
             { offset = ( 0, 0 )
-            , size = 1.0
+            , size = 3.0
             , blur = 3.0
             , color = colors.backgroundDark
             }
+        , Background.color colors.background
         , Events.onMouseEnter (FocusCard mod.id)
         , Events.onMouseLeave ClearFocus
         ]
@@ -147,25 +150,7 @@ viewMod mod ( nameHeight, imageHeight ) =
             imageHeight
             mod.image.description
             mod.image.url
-        , column
-            [ width (px 250)
-            , height (px nameHeight)
-            , alignBottom
-            , centerX
-            , moveUp 20
-            , paddingEach { edges | top = 10, bottom = 10 }
-            , Background.color colors.background
-            , Border.rounded 8
-            , Border.shadow
-                { offset = ( 0, -4 )
-                , size = 0.1
-                , blur = 4
-                , color = colors.backgroundDark
-                }
-            ]
-            [ viewName mod.name
-            , viewUninstallButton mod.id
-            ]
+        , viewDetails mod
         ]
 
 
@@ -176,11 +161,39 @@ viewImage imageHeight description url =
         , height (px imageHeight)
         , centerX
         , clip
-        , Border.rounded 8
+        , Border.roundEach
+            { topLeft = 8
+            , topRight = 8
+            , bottomLeft = 0
+            , bottomRight = 0
+            }
         ]
         { src = url
         , description = description
         }
+
+
+viewDetails : InstalledMod -> Element Msg
+viewDetails mod =
+    column
+        [ width (px 250)
+        , height fill
+        , alignBottom
+        , centerX
+        , moveUp 4
+        , paddingEach { edges | top = 10, bottom = 4 }
+        , Background.color colors.background
+        , Border.rounded 8
+        , Border.shadow
+            { offset = ( 0, -2 )
+            , size = 0.1
+            , blur = 4
+            , color = colors.backgroundDark
+            }
+        ]
+        [ viewName mod.name
+        , viewUninstallButton mod.id
+        ]
 
 
 viewName : String -> Element msg
@@ -195,12 +208,11 @@ viewName name =
 
 viewUninstallButton : String -> Element Msg
 viewUninstallButton modId =
-    button [ height (px 22), width fill ]
+    button [ width (px 50), centerX ]
         { onPress = Just (UninstallMod modId)
-        , label = text "Uninstall"
-
-        -- image []
-        --     { src = "/assets/icons/uninstall.svg"
-        --     , description = "Uninstall mod"
-        --     }
+        , label =
+            image [ height (px 26) ]
+                { src = "/assets/icons/uninstall.svg"
+                , description = "Uninstall mod"
+                }
         }
