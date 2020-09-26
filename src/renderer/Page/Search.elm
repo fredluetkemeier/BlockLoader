@@ -5,14 +5,13 @@ import Dict
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
-import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input exposing (button)
 import Element.Keyed as Keyed
 import Element.Lazy exposing (lazy, lazy2)
 import GraphQl exposing (Named, Operation, Query)
 import GraphQl.Http as GraphQl
-import Html.Attributes
+import Html.Attributes exposing (style)
 import Json.Decode as Decode exposing (Decoder, field, int, list, string)
 import Json.Decode.Pipeline exposing (optional, required)
 import List.Extra as List
@@ -340,7 +339,7 @@ viewContent installedMods modResults =
         [ centerX
         , paddingEach { edges | top = 20 }
         , width fill
-        , Element.htmlAttribute (Html.Attributes.style "position" "relative")
+        , htmlAttribute (style "height" "calc(100vh - 150px")
         ]
         (case modResults of
             RemoteData.Loading ->
@@ -387,8 +386,9 @@ viewResults : List Result -> Element Msg
 viewResults result =
     Keyed.column
         [ width fill
-        , height fill
         , spacing 10
+        , scrollbarY
+        , paddingEach { edges | top = 2, left = 2, right = 6, bottom = 2 }
         ]
     <|
         List.map viewKeyedResult result

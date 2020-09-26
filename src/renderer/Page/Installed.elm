@@ -7,8 +7,7 @@ import Element.Border as Border
 import Element.Events as Events
 import Element.Font as Font
 import Element.Lazy exposing (lazy2)
-import Html.Events
-import Json.Decode as Decode
+import Html.Attributes exposing (attribute, style)
 import Models exposing (InstalledMod)
 import String.Extra as String
 import Styles exposing (colors, edges, sizes)
@@ -39,14 +38,18 @@ type alias Model =
 
 
 type Msg
-    = InspectCard String
+    = FocusCard String
+    | ClearFocus
 
 
 update : Context -> Msg -> Model -> ( Context, Model, Cmd Msg )
 update context msg model =
     case msg of
-        InspectCard id ->
+        FocusCard id ->
             ( context, { model | inspectedCardId = Just id }, Cmd.none )
+
+        ClearFocus ->
+            ( context, { model | inspectedCardId = Nothing }, Cmd.none )
 
 
 
@@ -69,6 +72,7 @@ view context model =
         , centerX
         , spacing 20
         , paddingEach { edges | top = 20 }
+        , htmlAttribute (style "height" "calc(100vh - 100px)")
         ]
         [ viewHeading
         , lazy2 viewInstalledMods context.installedMods model.inspectedCardId
@@ -86,19 +90,30 @@ viewInstalledMods installedMods inspectedCardId =
         getModHeight id =
             case inspectedCardId of
                 Nothing ->
-                    ( 200, 100 )
+                    ( 100, 200 )
 
                 Just inspectedId ->
                     if id == inspectedId then
-                        ( 100, 200 )
+                        ( 200, 100 )
 
                     else
-                        ( 200, 100 )
+                        ( 100, 200 )
     in
-    wrappedRow [ spacing 18 ] <|
-        List.map
-            (\mod -> viewMod mod (getModHeight mod.id))
-            installedMods
+    el
+        [ height fill
+        , width fill
+        , centerX
+        , scrollbarY
+        ]
+        (wrappedRow
+            [ spacing 14
+            , paddingEach { edges | top = 2, left = 2, right = 6, bottom = 2 }
+            ]
+         <|
+            List.map
+                (\mod -> viewMod mod (getModHeight mod.id))
+                installedMods
+        )
 
 
 viewMod : InstalledMod -> ( Int, Int ) -> Element Msg
@@ -114,7 +129,8 @@ viewMod mod ( nameHeight, imageHeight ) =
             , blur = 3.0
             , color = colors.backgroundDark
             }
-        , Events.onMouseEnter (InspectCard mod.id)
+        , Events.onMouseEnter (FocusCard mod.id)
+        , Events.onMouseLeave ClearFocus
         ]
         [ image
             [ width fill

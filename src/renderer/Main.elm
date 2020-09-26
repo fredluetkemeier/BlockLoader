@@ -8,7 +8,7 @@ import Element.Background as Background
 import Element.Events as Events
 import Element.Font as Font
 import Element.Lazy exposing (lazy2)
-import Html.Attributes exposing (class)
+import Html.Attributes exposing (attribute, class, style)
 import Json.Decode as Decode exposing (Decoder, list, string)
 import Json.Decode.Pipeline exposing (required)
 import List.Extra as List
