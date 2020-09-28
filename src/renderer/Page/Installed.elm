@@ -7,7 +7,7 @@ import Element.Border as Border
 import Element.Events as Events
 import Element.Font as Font
 import Element.Input exposing (button)
-import Element.Lazy exposing (lazy2)
+import Element.Lazy exposing (lazy, lazy2)
 import Html.Attributes exposing (style)
 import Http exposing (filePart)
 import List.Extra as List
@@ -44,6 +44,11 @@ init =
 type alias Model =
     { inspectedCardId : Maybe String
     }
+
+
+type DetailsSize
+    = Expanded
+    | Default
 
 
 
@@ -104,61 +109,69 @@ view context model =
         , centerX
         , spacing 20
         , paddingEach { edges | top = 20 }
-        , htmlAttribute (style "height" "calc(100vh - 80px)")
+        , htmlAttribute (style "height" "calc(100vh - 84px)")
         ]
-        [ viewHeading
+        [ lazy viewHeading (List.length context.installedMods)
         , lazy2 viewInstalledMods context.installedMods model.inspectedCardId
         ]
 
 
-viewHeading : Element Msg
-viewHeading =
-    el [] (text "Heading")
+viewHeading : Int -> Element Msg
+viewHeading modCount =
+    el
+        [ width fill
+        , paddingEach { edges | bottom = 12 }
+        , Font.color colors.fontDark
+        , Font.size 18
+        , Font.center
+        , Border.dashed
+        , Border.color colors.backgroundLight
+        , Border.widthEach { edges | bottom = 2 }
+        ]
+        (text (String.fromInt modCount ++ " mods installed"))
 
 
 viewInstalledMods : List InstalledMod -> Maybe String -> Element Msg
 viewInstalledMods installedMods inspectedCardId =
     let
-        getModHeight id =
+        getDetailsSize id =
             case inspectedCardId of
                 Nothing ->
-                    100
+                    Default
 
                 Just inspectedId ->
                     if id == inspectedId then
-                        200
+                        Expanded
 
                     else
-                        100
+                        Default
     in
     el
         [ height fill
         , width fill
-        , moveLeft 4
-        , centerX
         , scrollbarY
         ]
         (wrappedRow
             [ spacing 12
             , paddingEach
                 { edges
-                    | top = 6
-                    , left = 6
-                    , bottom = 6
+                    | top = 5
+                    , left = 5
+                    , bottom = 5
                     , right = 8
                 }
             ]
          <|
             List.map
-                (\mod -> viewMod (getModHeight mod.id) mod)
+                (\mod -> viewMod (getDetailsSize mod.id) mod)
                 installedMods
         )
 
 
-viewMod : Int -> InstalledMod -> Element Msg
-viewMod detailsHeight mod =
+viewMod : DetailsSize -> InstalledMod -> Element Msg
+viewMod detailsSize mod =
     column
-        [ height (px 300)
+        [ height (px 250)
         , width (px 250)
         , Border.rounded 8
         , Border.shadow
@@ -174,8 +187,7 @@ viewMod detailsHeight mod =
         [ viewImage
             mod.image.description
             mod.image.url
-        , el [ height (px detailsHeight) ] <|
-            viewDetails mod
+        , viewDetails detailsSize mod
         ]
 
 
@@ -198,11 +210,20 @@ viewImage description url =
         }
 
 
-viewDetails : InstalledMod -> Element Msg
-viewDetails mod =
+viewDetails : DetailsSize -> InstalledMod -> Element Msg
+viewDetails size mod =
+    let
+        containerHeight =
+            case size of
+                Expanded ->
+                    150
+
+                Default ->
+                    40
+    in
     column
         [ width (px 250)
-        , height fill
+        , height (px containerHeight)
         , alignBottom
         , centerX
         , moveUp 4
@@ -217,16 +238,22 @@ viewDetails mod =
             }
         ]
         [ viewName mod.name
-        , viewUninstallButton mod.id
+        , case size of
+            Expanded ->
+                viewUninstallButton mod.id
+
+            Default ->
+                none
         ]
 
 
 viewName : String -> Element msg
 viewName name =
     el
-        [ centerX
-        , height fill
+        [ height fill
+        , width fill
         , Font.color colors.fontLight
+        , Font.center
         ]
         (text (String.ellipsis 28 name))
 
