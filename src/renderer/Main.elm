@@ -53,6 +53,9 @@ port changedUrl : (String -> msg) -> Sub msg
 port downloadProgress : ({ id : String, percentage : Float } -> msg) -> Sub msg
 
 
+port modUninstalled : (String -> msg) -> Sub msg
+
+
 
 -- MODEL
 
@@ -174,6 +177,7 @@ subscriptions model =
         [ pageSubscriptions
         , changedUrl (toUrl >> ChangedUrl)
         , downloadProgress SetDownloadProgress
+        , modUninstalled RemoveInstalledMod
         ]
 
 
@@ -211,6 +215,7 @@ type Msg
     | Maximize
     | Exit
     | SetDownloadProgress { id : String, percentage : Float }
+    | RemoveInstalledMod String
 
 
 type Page
@@ -311,6 +316,15 @@ update msg model =
                 updatedContext =
                     { context
                         | installedMods = List.map updateInstalledMod context.installedMods
+                    }
+            in
+            ( { model | context = updatedContext }, Cmd.none )
+
+        ( RemoveInstalledMod id, _ ) ->
+            let
+                updatedContext =
+                    { context
+                        | installedMods = List.filter (\mod -> mod.id /= id) context.installedMods
                     }
             in
             ( { model | context = updatedContext }, Cmd.none )

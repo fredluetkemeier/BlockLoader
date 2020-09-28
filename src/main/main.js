@@ -7,11 +7,12 @@ const { findAPortNotInUse } = require('portscanner');
 
 require('@electron/remote/main').initialize();
 
-// STARTUP
-
 let PORT;
 let startupWindow;
 
+// ------
+// STARTUP
+// ------
 app.whenReady()
     .then(createStartupWindow)
     .then(() => findAPortNotInUse(3000, 9000))
@@ -21,8 +22,9 @@ app.whenReady()
     .then(() => startServer(PORT))
     .then(createMainWindow);
 
+// ------
 // EVENTS
-
+// ------
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
         app.quit();
@@ -36,7 +38,6 @@ app.on('activate', () => {
 });
 
 //ipcMain.handle('exit', () => app.exit());
-
 ipcMain.on('exit', () => app.exit());
 
 ipcMain.on('download', async (event, { url, modPath, mod }) => {
@@ -63,6 +64,12 @@ ipcMain.on('download', async (event, { url, modPath, mod }) => {
     data.pipe(writer);
 
     writer.on('finish', () => event.reply('downloadFinished', { mod }));
+});
+
+ipcMain.on('uninstall', async (event, { id, fileName, modPath }) => {
+    fs.unlink(path.resolve(modPath, fileName), () =>
+        event.reply('uninstallFinished', { id })
+    );
 });
 
 // WINDOWS

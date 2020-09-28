@@ -1,4 +1,4 @@
-module Page.Installed exposing (Model, Msg, init, subscriptions, update, view)
+port module Page.Installed exposing (Model, Msg, init, subscriptions, update, view)
 
 import Context exposing (Context)
 import Element exposing (..)
@@ -9,6 +9,8 @@ import Element.Font as Font
 import Element.Input exposing (button)
 import Element.Lazy exposing (lazy2)
 import Html.Attributes exposing (style)
+import Http exposing (filePart)
+import List.Extra as List
 import Models exposing (InstalledMod)
 import String.Extra as String
 import Styles exposing (colors, edges, sizes)
@@ -16,6 +18,16 @@ import Styles exposing (colors, edges, sizes)
 
 
 -- PORTS
+
+
+port uninstallMod :
+    { id : String
+    , fileName : String
+    }
+    -> Cmd msg
+
+
+
 -- MODEl
 
 
@@ -54,7 +66,22 @@ update context msg model =
             ( context, { model | inspectedCardId = Nothing }, Cmd.none )
 
         UninstallMod id ->
-            ( context, model, Cmd.none )
+            let
+                maybeMod =
+                    List.find (\mod -> mod.id == id) context.installedMods
+
+                newCmd =
+                    case maybeMod of
+                        Just mod ->
+                            uninstallMod
+                                { id = mod.id
+                                , fileName = mod.fileName
+                                }
+
+                        Nothing ->
+                            Cmd.none
+            in
+            ( context, model, newCmd )
 
 
 
@@ -95,14 +122,14 @@ viewInstalledMods installedMods inspectedCardId =
         getModHeight id =
             case inspectedCardId of
                 Nothing ->
-                    ( 100, 200 )
+                    100
 
                 Just inspectedId ->
                     if id == inspectedId then
-                        ( 200, 100 )
+                        200
 
                     else
-                        ( 100, 200 )
+                        100
     in
     el
         [ height fill
@@ -123,18 +150,16 @@ viewInstalledMods installedMods inspectedCardId =
             ]
          <|
             List.map
-                (\mod -> viewMod mod (getModHeight mod.id))
+                (\mod -> viewMod (getModHeight mod.id) mod)
                 installedMods
         )
 
 
-viewMod : InstalledMod -> ( Int, Int ) -> Element Msg
-viewMod mod ( nameHeight, imageHeight ) =
+viewMod : Int -> InstalledMod -> Element Msg
+viewMod detailsHeight mod =
     column
         [ height (px 300)
         , width (px 250)
-
-        -- , paddingEach { edges | top = 2, left = 2, right = 2 }
         , Border.rounded 8
         , Border.shadow
             { offset = ( 0, 0 )
@@ -142,23 +167,23 @@ viewMod mod ( nameHeight, imageHeight ) =
             , blur = 3.0
             , color = colors.backgroundDark
             }
-        , Background.color colors.background
+        , Background.color colors.backgroundMedium
         , Events.onMouseEnter (FocusCard mod.id)
         , Events.onMouseLeave ClearFocus
         ]
         [ viewImage
-            imageHeight
             mod.image.description
             mod.image.url
-        , viewDetails mod
+        , el [ height (px detailsHeight) ] <|
+            viewDetails mod
         ]
 
 
-viewImage : Int -> String -> String -> Element msg
-viewImage imageHeight description url =
+viewImage : String -> String -> Element msg
+viewImage description url =
     image
         [ width fill
-        , height (px imageHeight)
+        , height fill
         , centerX
         , clip
         , Border.roundEach
@@ -182,12 +207,12 @@ viewDetails mod =
         , centerX
         , moveUp 4
         , paddingEach { edges | top = 10, bottom = 4 }
-        , Background.color colors.background
+        , Background.color colors.backgroundMedium
         , Border.rounded 8
         , Border.shadow
             { offset = ( 0, -2 )
-            , size = 0.1
-            , blur = 4
+            , size = 0.6
+            , blur = 3
             , color = colors.backgroundDark
             }
         ]

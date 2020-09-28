@@ -11,7 +11,7 @@ import Element.Keyed as Keyed
 import Element.Lazy exposing (lazy, lazy2)
 import GraphQl exposing (Named, Operation, Query)
 import GraphQl.Http as GraphQl
-import Html.Attributes exposing (style)
+import Html.Attributes exposing (attribute, style)
 import Json.Decode as Decode exposing (Decoder, field, int, list, string)
 import Json.Decode.Pipeline exposing (optional, required)
 import List.Extra as List
@@ -319,8 +319,7 @@ view context model =
 viewSearchInput : String -> Element Msg
 viewSearchInput searchTerm =
     Input.search
-        [ Input.focusedOnLoad
-        , Background.color colors.backgroundLight
+        [ Background.color colors.backgroundLight
         , padding 12
         , Font.color colors.font
         , width fill
