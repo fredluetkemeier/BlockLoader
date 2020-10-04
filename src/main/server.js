@@ -1,8 +1,11 @@
 const express = require('express');
 const path = require('path');
+const axios = require('axios');
 
 function startServer(port) {
     const app = express();
+
+    app.use(express.json());
 
     app.use(
         '/assets',
@@ -13,7 +16,17 @@ function startServer(port) {
     );
     app.use('/dist', express.static(path.join(__dirname, '../../dist')));
 
-    app.get('/*', (req, res) => {
+    app.use('/graphql', async (req, res) => {
+        axios({
+            url: 'https://www.minecraftpackagemanager.com/graphql',
+            method: 'POST',
+            data: req.body,
+        })
+            .then((response) => res.send(response.data))
+            .catch((response) => res.sendStatus(response.status));
+    });
+
+    app.get('/', (req, res) => {
         res.sendFile(path.join(__dirname, '../../assets/index.html'));
     });
 

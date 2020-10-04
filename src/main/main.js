@@ -101,6 +101,7 @@ function createMainWindow() {
         webPreferences: {
             nodeIntegration: true,
             enableRemoteModule: true,
+            webSecurity: false,
         },
         show: false,
         frame: false,

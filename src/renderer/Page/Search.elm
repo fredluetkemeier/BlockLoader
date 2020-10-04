@@ -11,7 +11,7 @@ import Element.Keyed as Keyed
 import Element.Lazy exposing (lazy, lazy2)
 import GraphQl exposing (Named, Operation, Query)
 import GraphQl.Http as GraphQl
-import Html.Attributes exposing (attribute, style)
+import Html.Attributes exposing (style)
 import Json.Decode as Decode exposing (Decoder, field, int, list, string)
 import Json.Decode.Pipeline exposing (optional, required)
 import List.Extra as List
@@ -234,7 +234,7 @@ findMods : Int -> String -> Cmd Msg
 findMods timeOfSearch searchTerm =
     GraphQl.query (findModsQuery searchTerm)
         |> GraphQl.send
-            { url = "http://localhost:4000/graphql"
+            { url = "/graphql"
             , headers = []
             }
             (RemoteData.fromResult >> ReceivedMods timeOfSearch)
