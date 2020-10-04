@@ -2,7 +2,6 @@ import { Elm } from './Main';
 import Store from '../store';
 import { ipcRenderer } from 'electron';
 import { BrowserWindow, dialog } from '@electron/remote';
-import { createBrowserHistory } from 'history';
 
 // ------
 // STARTUP
@@ -14,10 +13,6 @@ const store = new Store({
 });
 
 const { modPath, installedMods } = store.getAll();
-
-const history = createBrowserHistory({
-    basename: location,
-});
 
 const app = Elm.Main.init({
     flags: JSON.stringify({
