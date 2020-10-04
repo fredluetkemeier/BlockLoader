@@ -9,7 +9,6 @@ import Element.Font as Font
 import Element.Input exposing (button)
 import Element.Lazy exposing (lazy, lazy2)
 import Html.Attributes exposing (style)
-import Http exposing (filePart)
 import List.Extra as List
 import Models exposing (InstalledMod)
 import String.Extra as String

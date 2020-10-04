@@ -7,8 +7,8 @@ import Element exposing (..)
 import Element.Background as Background
 import Element.Events as Events
 import Element.Font as Font
-import Element.Lazy exposing (lazy2)
-import Html.Attributes exposing (attribute, class, style)
+import Element.Lazy exposing (lazy, lazy2)
+import Html.Attributes exposing (class)
 import Json.Decode as Decode exposing (Decoder, list, string)
 import Json.Decode.Pipeline exposing (required)
 import List.Extra as List
@@ -339,15 +339,6 @@ update msg model =
 
 view : Model -> Document Msg
 view model =
-    let
-        viewHeaderMaybe =
-            case model.page of
-                WelcomePage _ ->
-                    none
-
-                _ ->
-                    viewHeader
-    in
     { title = "MPM"
     , body =
         [ Element.layout
@@ -363,7 +354,7 @@ view model =
                 , height fill
                 ]
                 [ viewTitleBar
-                , viewHeaderMaybe
+                , lazy viewHeader model.page
                 , lazy2 viewPage model.context model.page
                 ]
             )
@@ -421,29 +412,34 @@ viewTitleBarButton hoverColor attrs children =
         children
 
 
-viewHeader : Element msg
-viewHeader =
-    el
-        [ Background.color colors.backgroundColorful
-        , width fill
-        ]
-        (el [ centerX ]
-            (row
-                [ height fill
-                , width sizes.content
-                , centerY
-                , spaceEvenly
-                , paddingEach { edges | top = 12, bottom = 12 }
+viewHeader : Page -> Element msg
+viewHeader page =
+    case page of
+        WelcomePage _ ->
+            none
+
+        _ ->
+            el
+                [ Background.color colors.backgroundColorful
+                , width fill
                 ]
-                [ viewLogo
-                , row [ spacing 12 ]
-                    [ viewSearchLink
-                    , viewInstalledLink
-                    , viewSettingsLink
-                    ]
-                ]
-            )
-        )
+                (el [ centerX ]
+                    (row
+                        [ height fill
+                        , width sizes.content
+                        , centerY
+                        , spaceEvenly
+                        , paddingEach { edges | top = 12, bottom = 12 }
+                        ]
+                        [ viewLogo
+                        , row [ spacing 12 ]
+                            [ viewSearchLink
+                            , viewInstalledLink
+                            , viewSettingsLink
+                            ]
+                        ]
+                    )
+                )
 
 
 viewLogo : Element msg

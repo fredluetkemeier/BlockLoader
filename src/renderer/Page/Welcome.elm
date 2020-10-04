@@ -5,7 +5,7 @@ import Element exposing (..)
 import Element.Border as Border
 import Element.Font as Font
 import Element.Input exposing (button)
-import Html.Attributes exposing (align)
+import Element.Lazy exposing (lazy)
 import Styles exposing (colors, edges, sizes)
 
 
@@ -89,7 +89,7 @@ view _ model =
         , paddingEach { edges | top = 80 }
         ]
         [ viewHeading
-        , viewPathSelection model.path
+        , lazy viewPathSelection model.path
         ]
 
 
