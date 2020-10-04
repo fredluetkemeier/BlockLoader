@@ -30,7 +30,13 @@
             "assets/**/*",
             "package.json"
         ],
-        "artifactName": "mpm-${version}.${ext}"
+        "artifactName": "mpm-${version}.${ext}",
+        "win": {
+            "icon": "build/icon.png"
+        },
+        "nsis": {
+            "installerIcon": "build/icon.ico"
+        }
     },
     "dependencies": {
         "@electron/remote": "^1.0.0",
