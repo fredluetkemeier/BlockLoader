@@ -6,6 +6,7 @@ const { startServer } = require('./server');
 const { findAPortNotInUse } = require('portscanner');
 
 require('@electron/remote/main').initialize();
+const isDev = process.env.NODE_ENV !== 'production';
 
 let PORT;
 let startupWindow;
@@ -31,11 +32,11 @@ app.on('window-all-closed', () => {
     }
 });
 
-app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-        createMainWindow();
-    }
-});
+// app.on('activate', () => {
+//     if (BrowserWindow.getAllWindows().length === 0) {
+//         createMainWindow();
+//     }
+// });
 
 //ipcMain.handle('exit', () => app.exit());
 ipcMain.on('exit', () => app.exit());
@@ -113,7 +114,7 @@ function createMainWindow() {
     window.once('ready-to-show', () => {
         startupWindow.hide();
         window.show();
-    });
 
-    window.webContents.openDevTools();
+        if (isDev) window.webContents.openDevTools();
+    });
 }

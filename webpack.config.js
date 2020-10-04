@@ -1,7 +1,7 @@
 const path = require('path');
 
-module.exports = (env) => {
-    const isDev = env ? env.dev : false;
+module.exports = () => {
+    const isDev = process.env.NODE_ENV !== 'production';
 
     return {
         mode: isDev ? 'development' : 'production',
@@ -9,8 +9,8 @@ module.exports = (env) => {
         devtool: isDev ? 'inline-source' : '',
         entry: './src/renderer',
         output: {
-            path: path.resolve(__dirname, 'dist'),
-            publicPath: '/dist',
+            path: path.resolve(__dirname, 'assets'),
+            publicPath: '/assets',
             filename: 'app.js',
         },
         target: 'electron-renderer',
