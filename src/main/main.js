@@ -112,7 +112,7 @@ function createMainWindow() {
     window.loadURL(`http://localhost:${PORT}`);
 
     window.once('ready-to-show', () => {
-        startupWindow.hide();
+        startupWindow.close();
         window.show();
 
         if (isDev) window.webContents.openDevTools();

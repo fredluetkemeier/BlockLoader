@@ -4,10 +4,10 @@
     "description": "A package manager for Minecraft",
     "main": "./src/main/main.js",
     "scripts": {
-        "main:prod": "electron .",
+        "main": "electron .",
         "main:watch": "nodemon --watch ./src/main --exec \"electron .\"",
         "renderer:watch": "webpack --watch",
-        "renderer:prod": "cross-env NODE_ENV=production webpack",
+        "renderer": "cross-env NODE_ENV=production webpack",
         "build": "electron-builder build --win --publish never",
         "deploy": "electron-builder build --win --publish always"
     },
