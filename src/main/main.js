@@ -6,7 +6,7 @@ const { startServer } = require('./server');
 const { findAPortNotInUse } = require('portscanner');
 
 require('@electron/remote/main').initialize();
-const isDev = process.env.NODE_ENV !== 'production';
+const isDev = require('electron-is-dev');
 
 let PORT;
 let startupWindow;

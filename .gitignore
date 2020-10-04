@@ -2,4 +2,3 @@ node_modules/
 dist/
 assets/app.js
 elm-stuff/
-electron-builder.yml

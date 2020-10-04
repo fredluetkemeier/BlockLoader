@@ -4,7 +4,7 @@
     "description": "A package manager for Minecraft",
     "main": "./src/main/main.js",
     "scripts": {
-        "main:prod": "cross-env NODE_ENV=production electron .",
+        "main:prod": "electron .",
         "main:watch": "nodemon --watch ./src/main --exec \"electron .\"",
         "renderer:watch": "webpack --watch",
         "renderer:prod": "cross-env NODE_ENV=production webpack",
@@ -22,10 +22,21 @@
         "url": "https://github.com/fredluetkemeier/mpm/issues"
     },
     "homepage": "https://github.com/fredluetkemeier/mpm#readme",
+    "build": {
+        "appId": "fredluetkemeier.mpm",
+        "files": [
+            "src/**/*",
+            "node_modules/**/*",
+            "assets/**/*",
+            "package.json"
+        ],
+        "artifactName": "mpm-${version}.${ext}"
+    },
     "dependencies": {
         "@electron/remote": "^1.0.0",
         "axios": "^0.20.0",
         "custom-electron-titlebar": "^3.2.4",
+        "electron-is-dev": "^1.2.0",
         "express": "^4.17.1",
         "history": "^5.0.0",
         "portscanner": "^2.2.0"
