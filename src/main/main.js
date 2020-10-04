@@ -32,11 +32,11 @@ app.on('window-all-closed', () => {
     }
 });
 
-// app.on('activate', () => {
-//     if (BrowserWindow.getAllWindows().length === 0) {
-//         createMainWindow();
-//     }
-// });
+app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) {
+        createMainWindow();
+    }
+});
 
 //ipcMain.handle('exit', () => app.exit());
 ipcMain.on('exit', () => app.exit());

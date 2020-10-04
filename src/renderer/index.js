@@ -1,7 +1,7 @@
 import { Elm } from './Main';
 import Store from '../store';
 import { ipcRenderer } from 'electron';
-import { BrowserWindow } from '@electron/remote';
+import { BrowserWindow, dialog } from '@electron/remote';
 import { createBrowserHistory } from 'history';
 
 // ------
@@ -73,8 +73,8 @@ ipcRenderer.on('downloadProgress', (event, { id, percentage }) =>
 
 // Welcome
 app.ports.choosePath.subscribe(() => {
-    remote.dialog
-        .showOpenDialog(remote.getCurrentWindow(), {
+    dialog
+        .showOpenDialog({
             properties: ['openDirectory'],
         })
         .then(({ filePaths }) => filePaths[0])
