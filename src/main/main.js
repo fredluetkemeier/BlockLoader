@@ -1,4 +1,5 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
+const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const fs = require('fs');
 const axios = require('axios');
@@ -10,6 +11,14 @@ const isDev = require('electron-is-dev');
 
 let PORT;
 let startupWindow;
+let mainWindow;
+
+autoUpdater.autoDownload = false;
+autoUpdater.setFeedURL({
+    provider: 'github',
+    owner: 'fredluetkemeier',
+    repo: 'mpm',
+});
 
 // ------
 // STARTUP
@@ -22,6 +31,55 @@ app.whenReady()
     })
     .then(() => startServer(PORT))
     .then(createMainWindow);
+
+// ------
+// WINDOWS
+// ------
+function createStartupWindow() {
+    startupWindow = new BrowserWindow({
+        width: 250,
+        height: 300,
+        show: false,
+        movable: false,
+        maximizable: false,
+        minimizable: false,
+        resizable: false,
+        alwaysOnTop: true,
+        frame: false,
+    });
+
+    startupWindow.loadFile(path.join(__dirname, '../../assets/startup.html'));
+
+    startupWindow.once('ready-to-show', () => {
+        startupWindow.show();
+    });
+}
+
+function createMainWindow() {
+    mainWindow = new BrowserWindow({
+        width: 1000,
+        height: 720,
+        webPreferences: {
+            nodeIntegration: true,
+            enableRemoteModule: true,
+            webSecurity: false,
+        },
+        show: false,
+        frame: false,
+        movable: true,
+    });
+
+    mainWindow.loadURL(`http://localhost:${PORT}`);
+
+    mainWindow.once('ready-to-show', () => {
+        startupWindow.close();
+        mainWindow.show();
+
+        autoUpdater.checkForUpdates();
+
+        if (isDev) mainWindow.webContents.openDevTools();
+    });
+}
 
 // ------
 // EVENTS
@@ -38,8 +96,11 @@ app.on('activate', () => {
     }
 });
 
-//ipcMain.handle('exit', () => app.exit());
 ipcMain.on('exit', () => app.exit());
+
+autoUpdater.on('update-available', () =>
+    mainWindow.webContents.send('update-available')
+);
 
 ipcMain.on('download', async (event, { url, modPath, mod }) => {
     const { id, fileName } = mod;
@@ -72,49 +133,3 @@ ipcMain.on('uninstall', async (event, { id, fileName, modPath }) => {
         event.reply('uninstallFinished', { id })
     );
 });
-
-// WINDOWS
-
-function createStartupWindow() {
-    startupWindow = new BrowserWindow({
-        width: 250,
-        height: 300,
-        show: false,
-        movable: false,
-        maximizable: false,
-        minimizable: false,
-        resizable: false,
-        alwaysOnTop: true,
-        frame: false,
-    });
-
-    startupWindow.loadFile(path.join(__dirname, '../../assets/startup.html'));
-
-    startupWindow.once('ready-to-show', () => {
-        startupWindow.show();
-    });
-}
-
-function createMainWindow() {
-    const window = new BrowserWindow({
-        width: 1000,
-        height: 720,
-        webPreferences: {
-            nodeIntegration: true,
-            enableRemoteModule: true,
-            webSecurity: false,
-        },
-        show: false,
-        frame: false,
-        movable: true,
-    });
-
-    window.loadURL(`http://localhost:${PORT}`);
-
-    window.once('ready-to-show', () => {
-        startupWindow.close();
-        window.show();
-
-        if (isDev) window.webContents.openDevTools();
-    });
-}

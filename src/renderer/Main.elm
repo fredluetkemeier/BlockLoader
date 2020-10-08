@@ -53,6 +53,9 @@ port changedUrl : (String -> msg) -> Sub msg
 port downloadProgress : ({ id : String, percentage : Float } -> msg) -> Sub msg
 
 
+port updateAvailable : (() -> msg) -> Sub msg
+
+
 port modUninstalled : (String -> msg) -> Sub msg
 
 
@@ -76,6 +79,7 @@ init flags url navKey =
             , page = None
             , navKey = navKey
             , context = initialContext
+            , isUpdateAvailable = False
             }
 
         urlIntercept =
@@ -152,6 +156,7 @@ type alias Model =
     , page : Page
     , navKey : Nav.Key
     , context : Context
+    , isUpdateAvailable : Bool
     }
 
 
@@ -177,6 +182,7 @@ subscriptions model =
         [ pageSubscriptions
         , changedUrl (toUrl >> ChangedUrl)
         , downloadProgress SetDownloadProgress
+        , updateAvailable (always UpdateAvailable)
         , modUninstalled RemoveInstalledMod
         ]
 
@@ -215,6 +221,7 @@ type Msg
     | Maximize
     | Exit
     | SetDownloadProgress { id : String, percentage : Float }
+    | UpdateAvailable
     | RemoveInstalledMod String
 
 
@@ -320,6 +327,9 @@ update msg model =
             in
             ( { model | context = updatedContext }, Cmd.none )
 
+        ( UpdateAvailable, _ ) ->
+            ( { model | isUpdateAvailable = True }, Cmd.none )
+
         ( RemoveInstalledMod id, _ ) ->
             let
                 updatedContext =
@@ -354,7 +364,7 @@ view model =
                 , height fill
                 ]
                 [ viewTitleBar
-                , lazy viewHeader model.page
+                , lazy2 viewHeader model.page model.isUpdateAvailable
                 , lazy2 viewPage model.context model.page
                 ]
             )
@@ -412,8 +422,8 @@ viewTitleBarButton hoverColor attrs children =
         children
 
 
-viewHeader : Page -> Element msg
-viewHeader page =
+viewHeader : Page -> Bool -> Element msg
+viewHeader page isUpdateAvailable =
     case page of
         WelcomePage _ ->
             none
@@ -433,7 +443,8 @@ viewHeader page =
                         ]
                         [ viewLogo
                         , row [ spacing 12 ]
-                            [ viewSearchLink
+                            [ viewUpdateButton
+                            , viewSearchLink
                             , viewInstalledLink
                             , viewSettingsLink
                             ]
@@ -457,6 +468,14 @@ viewLogo =
                     }
                 , text "MPM"
                 ]
+        }
+
+
+viewUpdateButton : Element msg
+viewUpdateButton =
+    image [ height (px 22), paddingEach { edges | right = 8 } ]
+        { src = "/assets/icons/th-list.svg"
+        , description = "Update available icon"
         }
 
 

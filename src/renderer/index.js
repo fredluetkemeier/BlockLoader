@@ -4,26 +4,11 @@ import { ipcRenderer } from 'electron';
 import { BrowserWindow, dialog } from '@electron/remote';
 
 // ------
-// STARTUP
-// ------
-
-const store = new Store({
-    configName: 'user-config',
-    initialData: { modPath: '', installedMods: [] },
-});
-
-const { modPath, installedMods } = store.getAll();
-
-const app = Elm.Main.init({
-    flags: JSON.stringify({
-        modPath,
-        installedMods,
-    }),
-});
-
-// ------
 // EVENTS
 // ------
+//
+ipcRenderer.on('update-available', () => app.ports.updateAvailable.send());
+
 ipcRenderer.on('downloadFinished', (event, { mod }) => {
     const installedMods = store.get('installedMods');
     store.set('installedMods', [...installedMods, mod]);
@@ -40,9 +25,27 @@ ipcRenderer.on('uninstallFinished', (event, { id }) => {
 });
 
 // ------
+// STARTUP
+// ------
+//
+const store = new Store({
+    configName: 'user-config',
+    initialData: { modPath: '', installedMods: [] },
+});
+
+const { modPath, installedMods } = store.getAll();
+
+const app = Elm.Main.init({
+    flags: JSON.stringify({
+        modPath,
+        installedMods,
+    }),
+});
+
+// ------
 // PORTS
 // ------
-
+//
 // Main
 app.ports.sendMinimize.subscribe(() =>
     BrowserWindow.getFocusedWindow().minimize()
