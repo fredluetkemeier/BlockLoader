@@ -5,10 +5,12 @@ import Browser.Navigation as Nav
 import Context exposing (Context)
 import Element exposing (..)
 import Element.Background as Background
-import Element.Events as Events
+import Element.Events as Events exposing (onClick)
 import Element.Font as Font
+import Element.Input exposing (button)
 import Element.Lazy exposing (lazy, lazy2)
 import Html.Attributes exposing (class)
+import Html.Events exposing (onMouseOver)
 import Json.Decode as Decode exposing (Decoder, list, string)
 import Json.Decode.Pipeline exposing (required)
 import List.Extra as List
@@ -45,6 +47,9 @@ port sendMaximize : () -> Cmd msg
 
 
 port sendExit : () -> Cmd msg
+
+
+port updateApp : () -> Cmd msg
 
 
 port changedUrl : (String -> msg) -> Sub msg
@@ -222,6 +227,7 @@ type Msg
     | Exit
     | SetDownloadProgress { id : String, percentage : Float }
     | UpdateAvailable
+    | UpdateApp
     | RemoveInstalledMod String
 
 
@@ -330,6 +336,9 @@ update msg model =
         ( UpdateAvailable, _ ) ->
             ( { model | isUpdateAvailable = True }, Cmd.none )
 
+        ( UpdateApp, _ ) ->
+            ( model, updateApp () )
+
         ( RemoveInstalledMod id, _ ) ->
             let
                 updatedContext =
@@ -422,7 +431,7 @@ viewTitleBarButton hoverColor attrs children =
         children
 
 
-viewHeader : Page -> Bool -> Element msg
+viewHeader : Page -> Bool -> Element Msg
 viewHeader page isUpdateAvailable =
     case page of
         WelcomePage _ ->
@@ -488,11 +497,18 @@ viewLogo =
         }
 
 
-viewUpdateButton : Element msg
+viewUpdateButton : Element Msg
 viewUpdateButton =
-    image [ height (px 22), paddingEach { edges | right = 8 } ]
-        { src = "/assets/icons/th-list.svg"
-        , description = "Update available icon"
+    button []
+        { onPress = Just UpdateApp
+        , label =
+            image
+                [ height (px 22)
+                , paddingEach { edges | right = 8 }
+                ]
+                { src = "/assets/icons/update.svg"
+                , description = "Update available icon"
+                }
         }
 
 

@@ -18,7 +18,7 @@ function startServer(port) {
 
     app.use('/graphql', async (req, res) => {
         axios({
-            url: 'https://www.minecraftpackagemanager.com/graphql',
+            url: 'https://www.blockloader.io/graphql',
             method: 'POST',
             data: req.body,
         })

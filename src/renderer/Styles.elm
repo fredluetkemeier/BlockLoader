@@ -17,6 +17,7 @@ colors =
     , accent = rgb255 204 240 255
     , accentDark = rgb255 131 200 230
     , danger = rgb255 204 65 65
+    , success = rgb255 43 214 74
     }
 
 
