@@ -1,6 +1,6 @@
 {
-    "name": "mpm",
-    "version": "0.1.1",
+    "name": "block-loader",
+    "version": "0.2.0",
     "description": "A package manager for Minecraft",
     "main": "./src/main/main.js",
     "scripts": {
@@ -13,24 +13,24 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/fredluetkemeier/mpm.git"
+        "url": "git+https://github.com/fredluetkemeier/block-loader.git"
     },
     "keywords": [],
     "author": "",
     "license": "ISC",
     "bugs": {
-        "url": "https://github.com/fredluetkemeier/mpm/issues"
+        "url": "https://github.com/fredluetkemeier/block-loader/issues"
     },
-    "homepage": "https://github.com/fredluetkemeier/mpm#readme",
+    "homepage": "https://github.com/fredluetkemeier/block-loader#readme",
     "build": {
-        "appId": "fredluetkemeier.mpm",
+        "appId": "fredluetkemeier.block-loader",
         "files": [
             "src/**/*",
             "node_modules/**/*",
             "assets/**/*",
             "package.json"
         ],
-        "artifactName": "mpm-${version}.${ext}",
+        "artifactName": "block-loader-${version}.${ext}",
         "win": {
             "icon": "build/icon.png"
         },

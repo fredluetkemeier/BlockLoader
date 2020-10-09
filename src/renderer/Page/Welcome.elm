@@ -22,7 +22,7 @@ port pathChosen : (String -> msg) -> Sub msg
 port savePath : String -> Cmd msg
 
 
-port pushUrl : String -> Cmd msg
+port changeUrl : String -> Cmd msg
 
 
 
@@ -64,7 +64,7 @@ update context msg model =
             ( context, { model | path = path }, Cmd.none )
 
         Continue ->
-            ( { context | modPath = model.path }, model, Cmd.batch [ savePath model.path, pushUrl "/search" ] )
+            ( { context | modPath = model.path }, model, Cmd.batch [ savePath model.path, changeUrl "/search" ] )
 
 
 

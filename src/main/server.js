@@ -26,7 +26,7 @@ function startServer(port) {
             .catch((response) => res.sendStatus(response.status));
     });
 
-    app.get('/', (req, res) => {
+    app.get('/*', (req, res) => {
         res.sendFile(path.join(__dirname, '../../assets/index.html'));
     });
 

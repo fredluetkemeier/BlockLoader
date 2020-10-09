@@ -17,7 +17,7 @@ autoUpdater.autoDownload = false;
 autoUpdater.setFeedURL({
     provider: 'github',
     owner: 'fredluetkemeier',
-    repo: 'mpm',
+    repo: 'block-loader',
 });
 
 // ------
@@ -75,7 +75,7 @@ function createMainWindow() {
         startupWindow.close();
         mainWindow.show();
 
-        autoUpdater.checkForUpdates();
+        //autoUpdater.checkForUpdates();
 
         if (isDev) mainWindow.webContents.openDevTools();
     });

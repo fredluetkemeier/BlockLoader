@@ -349,7 +349,7 @@ update msg model =
 
 view : Model -> Document Msg
 view model =
-    { title = "MPM"
+    { title = "Block Loader"
     , body =
         [ Element.layout
             [ Background.color colors.background
@@ -462,11 +462,28 @@ viewLogo =
                 [ Font.size 28
                 , spacing 12
                 ]
-                [ image [ height (px 32) ]
+                [ image [ height (px 36) ]
                     { src = "/assets/icons/logo.svg"
-                    , description = "The MPM logo"
+                    , description = "The app logo"
                     }
-                , text "MPM"
+                , el [ height fill ]
+                    (column
+                        [ height fill
+                        , centerY
+                        , Font.size 18
+                        , Font.color colors.accent
+                        ]
+                        [ el
+                            [ Font.alignLeft
+                            , Font.extraBold
+                            ]
+                            (text "Block")
+                        , el
+                            [ Font.alignLeft
+                            ]
+                            (text "Loader")
+                        ]
+                    )
                 ]
         }
 
