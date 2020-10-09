@@ -13,24 +13,24 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/fredluetkemeier/block-loader.git"
+        "url": "git+https://github.com/fredluetkemeier/BlockLoader.git"
     },
     "keywords": [],
     "author": "",
     "license": "ISC",
     "bugs": {
-        "url": "https://github.com/fredluetkemeier/block-loader/issues"
+        "url": "https://github.com/fredluetkemeier/BlockLoader/issues"
     },
-    "homepage": "https://github.com/fredluetkemeier/block-loader#readme",
+    "homepage": "https://github.com/fredluetkemeier/BlockLoader#readme",
     "build": {
-        "appId": "fredluetkemeier.block-loader",
+        "appId": "fredluetkemeier.BlockLoader",
         "files": [
             "src/**/*",
             "node_modules/**/*",
             "assets/**/*",
             "package.json"
         ],
-        "artifactName": "block-loader-${version}.${ext}",
+        "artifactName": "BlockLoader-${version}.${ext}",
         "win": {
             "icon": "build/icon.png"
         },
