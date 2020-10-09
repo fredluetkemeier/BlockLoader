@@ -75,7 +75,7 @@ function createMainWindow() {
         startupWindow.close();
         mainWindow.show();
 
-        //autoUpdater.checkForUpdates();
+        autoUpdater.checkForUpdates();
 
         if (isDev) mainWindow.webContents.openDevTools();
     });
