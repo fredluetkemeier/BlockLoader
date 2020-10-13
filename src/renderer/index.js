@@ -60,6 +60,8 @@ app.ports.sendMaximize.subscribe(() => {
 
 app.ports.sendExit.subscribe(() => ipcRenderer.send('exit'));
 
+app.ports.updateApp.subscribe(() => console.log('updating app'));
+
 app.ports.changeUrl.subscribe((url) => app.ports.changedUrl.send(url));
 
 ipcRenderer.on('downloadProgress', (event, { id, percentage }) =>
