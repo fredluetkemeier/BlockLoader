@@ -18,14 +18,11 @@ import Models exposing (InstalledMod, installedModDecoder)
 import Page.Installed as Installed
 import Page.Search as Search
 import Page.Welcome as Welcome
-import Progress
+import Progress exposing (Progress)
 import Route exposing (Route)
 import Styles exposing (colors, edges, sizes)
+import UpdateStatus exposing (UpdateStatus)
 import Url as Url exposing (Protocol(..), Url)
-
-
-
--- random comment
 
 
 main : Program (Maybe String) Model Msg
@@ -88,7 +85,7 @@ init flags url navKey =
             , page = None
             , navKey = navKey
             , context = initialContext
-            , isUpdateAvailable = False
+            , updateStatus = UpdateStatus.NotAvailable
             }
 
         urlIntercept =
@@ -165,7 +162,7 @@ type alias Model =
     , page : Page
     , navKey : Nav.Key
     , context : Context
-    , isUpdateAvailable : Bool
+    , updateStatus : UpdateStatus
     }
 
 
@@ -338,7 +335,7 @@ update msg model =
             ( { model | context = updatedContext }, Cmd.none )
 
         ( UpdateAvailable, _ ) ->
-            ( { model | isUpdateAvailable = True }, Cmd.none )
+            ( { model | updateStatus = UpdateStatus.Available }, Cmd.none )
 
         ( UpdateApp, _ ) ->
             ( model, updateApp () )
@@ -377,7 +374,7 @@ view model =
                 , height fill
                 ]
                 [ viewTitleBar
-                , lazy2 viewHeader model.page model.isUpdateAvailable
+                , lazy2 viewHeader model.page model.updateStatus
                 , lazy2 viewPage model.context model.page
                 ]
             )
@@ -435,8 +432,8 @@ viewTitleBarButton hoverColor attrs children =
         children
 
 
-viewHeader : Page -> Bool -> Element Msg
-viewHeader page isUpdateAvailable =
+viewHeader : Page -> UpdateStatus -> Element Msg
+viewHeader page updateStatus =
     case page of
         WelcomePage _ ->
             none
@@ -456,7 +453,7 @@ viewHeader page isUpdateAvailable =
                         ]
                         [ viewLogo
                         , row [ spacing 12 ]
-                            [ viewUpdateButton |> onlyIf isUpdateAvailable
+                            [ viewUpdateButton updateStatus
                             , viewSearchLink
                             , viewInstalledLink
                             , viewSettingsLink
@@ -501,19 +498,33 @@ viewLogo =
         }
 
 
-viewUpdateButton : Element Msg
-viewUpdateButton =
-    button []
-        { onPress = Just UpdateApp
-        , label =
+viewUpdateButton : UpdateStatus -> Element Msg
+viewUpdateButton updateStatus =
+    case updateStatus of
+        UpdateStatus.Available ->
+            button []
+                { onPress = Just UpdateApp
+                , label =
+                    image
+                        [ height (px 22)
+                        , paddingEach { edges | right = 8 }
+                        ]
+                        { src = "/assets/icons/update.svg"
+                        , description = "Update available icon"
+                        }
+                }
+
+        UpdateStatus.Downloading ->
             image
                 [ height (px 22)
                 , paddingEach { edges | right = 8 }
                 ]
-                { src = "/assets/icons/update.svg"
-                , description = "Update available icon"
+                { src = "/assets/icons/updating.svg"
+                , description = "Updating app icon"
                 }
-        }
+
+        UpdateStatus.NotAvailable ->
+            none
 
 
 viewInstalledLink : Element msg
