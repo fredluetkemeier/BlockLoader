@@ -9,6 +9,10 @@ import { BrowserWindow, dialog } from '@electron/remote';
 //
 ipcRenderer.on('update-available', () => app.ports.updateAvailable.send(null));
 
+ipcRenderer.on('downloadProgress', (event, { id, percentage }) =>
+    app.ports.downloadProgress.send({ id, percentage })
+);
+
 ipcRenderer.on('downloadFinished', (event, { mod }) => {
     const installedMods = store.get('installedMods');
     store.set('installedMods', [...installedMods, mod]);
@@ -60,13 +64,9 @@ app.ports.sendMaximize.subscribe(() => {
 
 app.ports.sendExit.subscribe(() => ipcRenderer.send('exit'));
 
-app.ports.updateApp.subscribe(() => console.log('updating app'));
+app.ports.updateApp.subscribe(() => ipcRenderer.send('update-app'));
 
 app.ports.changeUrl.subscribe((url) => app.ports.changedUrl.send(url));
-
-ipcRenderer.on('downloadProgress', (event, { id, percentage }) =>
-    app.ports.downloadProgress.send({ id, percentage })
-);
 
 // Welcome
 app.ports.choosePath.subscribe(() => {

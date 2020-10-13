@@ -105,6 +105,8 @@ autoUpdater.on('update-available', () =>
     mainWindow.webContents.send('update-available')
 );
 
+ipcMain.on('update-app', () => autoUpdater.quitAndInstall());
+
 ipcMain.on('download', async (event, { url, modPath, mod }) => {
     const { id, fileName } = mod;
 
