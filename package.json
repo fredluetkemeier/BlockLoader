@@ -8,8 +8,8 @@
         "main:watch": "nodemon --watch ./src/main --exec \"electron .\"",
         "renderer:watch": "webpack --watch",
         "renderer": "cross-env NODE_ENV=production webpack",
-        "build": "electron-builder build --win --publish never",
-        "deploy": "electron-builder build --win --publish always"
+        "build": "cross-env NODE_ENV=production webpack && electron-builder build --win --publish never",
+        "deploy": "cross-env NODE_ENV=production webpack && electron-builder build --win --publish always"
     },
     "repository": {
         "type": "git",
