@@ -338,7 +338,7 @@ update msg model =
             ( { model | updateStatus = UpdateStatus.Available }, Cmd.none )
 
         ( UpdateApp, _ ) ->
-            ( model, updateApp () )
+            ( { model | updateStatus = UpdateStatus.Downloading }, updateApp () )
 
         ( RemoveInstalledMod id, _ ) ->
             let
