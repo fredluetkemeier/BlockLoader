@@ -452,7 +452,7 @@ viewHeader page isUpdateAvailable =
                         ]
                         [ viewLogo
                         , row [ spacing 12 ]
-                            [ viewUpdateButton
+                            [ viewUpdateButton |> onlyIf isUpdateAvailable
                             , viewSearchLink
                             , viewInstalledLink
                             , viewSettingsLink
@@ -565,3 +565,16 @@ viewPage context page =
         InstalledPage model ->
             Installed.view context model
                 |> Element.map InstalledPageMsg
+
+
+
+-- EXTRAS
+
+
+onlyIf : Bool -> Element msg -> Element msg
+onlyIf condition children =
+    if condition then
+        children
+
+    else
+        none
