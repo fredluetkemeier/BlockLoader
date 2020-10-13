@@ -1,6 +1,6 @@
 {
     "name": "block-loader",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "description": "A package manager for Minecraft",
     "main": "./src/main/main.js",
     "scripts": {
@@ -24,6 +24,7 @@
     "homepage": "https://github.com/fredluetkemeier/BlockLoader#readme",
     "build": {
         "appId": "fredluetkemeier.BlockLoader",
+        "productName": "BlockLoader",
         "files": [
             "src/**/*",
             "node_modules/**/*",
