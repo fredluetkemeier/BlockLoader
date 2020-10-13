@@ -254,7 +254,7 @@ viewName name =
         , Font.color colors.fontLight
         , Font.center
         ]
-        (text (String.ellipsis 28 name))
+        (text (String.ellipsis 24 name))
 
 
 viewUninstallButton : String -> Element Msg

@@ -542,6 +542,10 @@ viewProgressBar fillAmount color =
         none
 
 
+
+-- EXTRAS
+
+
 colorToHtmlString : Color -> String
 colorToHtmlString color =
     let
