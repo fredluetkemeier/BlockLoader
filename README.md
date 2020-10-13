@@ -1,3 +1,3 @@
 # Block Loader
 
-A package manager for Minecraft
+A mod loader for Minecraft, designed for simplicity
