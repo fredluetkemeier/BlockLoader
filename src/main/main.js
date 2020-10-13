@@ -19,6 +19,9 @@ autoUpdater.setFeedURL({
     owner: 'fredluetkemeier',
     repo: 'block-loader',
 });
+setInterval(() => {
+    autoUpdater.checkForUpdates();
+}, 1000 * 5);
 
 // ------
 // STARTUP
