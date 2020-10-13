@@ -359,7 +359,7 @@ update msg model =
 
 view : Model -> Document Msg
 view model =
-    { title = "Block Loader"
+    { title = "BlockLoader"
     , body =
         [ Element.layout
             [ Background.color colors.background
