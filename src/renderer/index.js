@@ -7,7 +7,7 @@ import { BrowserWindow, dialog } from '@electron/remote';
 // EVENTS
 // ------
 //
-ipcRenderer.on('update-available', () => app.ports.updateAvailable.send());
+ipcRenderer.on('update-available', () => app.ports.updateAvailable.send(null));
 
 ipcRenderer.on('downloadFinished', (event, { mod }) => {
     const installedMods = store.get('installedMods');
