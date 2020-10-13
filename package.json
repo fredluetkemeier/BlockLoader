@@ -1,6 +1,6 @@
 {
     "name": "block-loader",
-    "version": "0.2.4",
+    "version": "0.2.3",
     "description": "A package manager for Minecraft",
     "main": "./src/main/main.js",
     "scripts": {
