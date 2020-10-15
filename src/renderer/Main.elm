@@ -17,6 +17,7 @@ import List.Extra as List
 import Models exposing (InstalledMod, installedModDecoder)
 import Page.Installed as Installed
 import Page.Search as Search
+import Page.Settings as Settings
 import Page.Welcome as Welcome
 import Progress exposing (Progress)
 import Route exposing (Route)
@@ -145,6 +146,13 @@ initCurrentPage ( model, existingCmds ) =
                             Installed.init
                     in
                     ( InstalledPage pageModel, Cmd.map InstalledPageMsg pageCmds )
+
+                Route.Settings ->
+                    let
+                        ( pageModel, pageCmds ) =
+                            Settings.init
+                    in
+                    ( SettingsPage pageModel, Cmd.map SettingsPageMsg pageCmds )
     in
     ( { model | page = currentPage }
     , Cmd.batch [ existingCmds, mappedPageCmds ]
@@ -221,6 +229,7 @@ type Msg
     = WelcomePageMsg Welcome.Msg
     | SearchPageMsg Search.Msg
     | InstalledPageMsg Installed.Msg
+    | SettingsPageMsg Settings.Msg
     | ChangedUrl Url
     | ClickedLink UrlRequest
     | Minimize
@@ -237,6 +246,7 @@ type Page
     | WelcomePage Welcome.Model
     | SearchPage Search.Model
     | InstalledPage Installed.Model
+    | SettingsPage Settings.Model
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -280,6 +290,18 @@ update msg model =
                 , context = updatedContext
               }
             , Cmd.map InstalledPageMsg updatedCmd
+            )
+
+        ( SettingsPageMsg pageMsg, SettingsPage pageModel ) ->
+            let
+                ( updatedContext, updatedPageModel, updatedCmd ) =
+                    Settings.update context pageMsg pageModel
+            in
+            ( { model
+                | page = SettingsPage updatedPageModel
+                , context = updatedContext
+              }
+            , Cmd.map SettingsPageMsg updatedCmd
             )
 
         ( ClickedLink urlRequest, _ ) ->
@@ -580,6 +602,10 @@ viewPage context page =
         InstalledPage model ->
             Installed.view context model
                 |> Element.map InstalledPageMsg
+
+        SettingsPage model ->
+            Settings.view context model
+                |> Element.map SettingsPageMsg
 
 
 
