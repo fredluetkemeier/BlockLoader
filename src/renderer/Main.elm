@@ -189,6 +189,9 @@ subscriptions model =
                 SearchPage pageModel ->
                     Sub.map SearchPageMsg (Search.subscriptions pageModel)
 
+                SettingsPage pageModel ->
+                    Sub.map SettingsPageMsg (Settings.subscriptions pageModel)
+
                 _ ->
                     Sub.none
     in
@@ -606,16 +609,3 @@ viewPage context page =
         SettingsPage model ->
             Settings.view context model
                 |> Element.map SettingsPageMsg
-
-
-
--- EXTRAS
-
-
-onlyIf : Bool -> Element msg -> Element msg
-onlyIf condition children =
-    if condition then
-        children
-
-    else
-        none

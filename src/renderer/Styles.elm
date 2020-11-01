@@ -13,6 +13,7 @@ colors =
     , backgroundDark = rgb255 31 31 31
     , font = rgb255 227 227 227
     , fontDark = rgb255 163 163 163
+    , fontMediumDark = rgb255 186 186 186
     , fontLight = rgb255 242 242 242
     , accent = rgb255 204 240 255
     , accentDark = rgb255 131 200 230

@@ -142,3 +142,5 @@ ipcMain.on('uninstall', async (event, { id, fileName, modPath }) => {
         event.reply('uninstallFinished', { id })
     );
 });
+
+ipcMain.on('move-mods', (event, { from, to }) => {});
