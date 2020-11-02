@@ -28,7 +28,7 @@ ipcRenderer.on('uninstallFinished', (event, { id }) => {
     app.ports.modUninstalled.send(id);
 });
 
-ipcRenderer.on('mods-moved', () => app.ports.modsMoved.send());
+ipcRenderer.on('mods-moved', () => app.ports.modsMoved.send(null));
 
 // ------
 // STARTUP
@@ -91,11 +91,10 @@ app.ports.downloadMod.subscribe((mod) => ipcRenderer.send('download', mod));
 // Installed
 app.ports.uninstallMod.subscribe(({ id, fileName }) => {
     const modPath = store.get('modPath');
-
     ipcRenderer.send('uninstall', { id, fileName, modPath });
 });
 
 // Settings
-app.ports.moveMods.subscribe(({ from, to }) =>
-    ipcRenderer.send('move-mods', { from, to })
-);
+app.ports.moveMods.subscribe(({ from, to }) => {
+    ipcRenderer.send('move-mods', { from, to });
+});

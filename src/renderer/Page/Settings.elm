@@ -29,7 +29,7 @@ init : ( Model, Cmd Msg )
 init =
     let
         initialModel =
-            { newModPath = ""
+            { newModPath = Empty
             }
     in
     ( initialModel, Cmd.none )
@@ -40,7 +40,7 @@ init =
 
 
 type alias Model =
-    { newModPath : String
+    { newModPath : SettingProgress String
     }
 
 
@@ -54,6 +54,11 @@ type Msg
     | ModsMoved
 
 
+type SettingProgress a
+    = Empty
+    | Saving a
+
+
 update : Context -> Msg -> Model -> ( Context, Model, Cmd Msg )
 update context msg model =
     case msg of
@@ -62,7 +67,7 @@ update context msg model =
 
         PathChosen path ->
             ( context
-            , { model | newModPath = path }
+            , { model | newModPath = Saving path }
             , moveMods
                 { from = context.modPath
                 , to = path
@@ -70,9 +75,18 @@ update context msg model =
             )
 
         ModsMoved ->
-            ( { context | modPath = model.newModPath }
-            , { model | newModPath = "" }
-            , savePath model.newModPath
+            let
+                newModPath =
+                    case model.newModPath of
+                        Saving path ->
+                            path
+
+                        Empty ->
+                            ""
+            in
+            ( { context | modPath = newModPath }
+            , { model | newModPath = Empty }
+            , savePath newModPath
             )
 
 
