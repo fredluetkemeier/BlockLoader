@@ -28,6 +28,8 @@ ipcRenderer.on('uninstallFinished', (event, { id }) => {
     app.ports.modUninstalled.send(id);
 });
 
+ipcRenderer.on('mods-moved', () => app.ports.modsMoved.send(null));
+
 // ------
 // STARTUP
 // ------
@@ -50,6 +52,21 @@ const app = Elm.Main.init({
 // PORTS
 // ------
 //
+
+// Shared
+app.ports.choosePath.subscribe(() => {
+    dialog
+        .showOpenDialog({
+            properties: ['openDirectory'],
+        })
+        .then(({ filePaths }) => filePaths[0])
+        .then((directory) => {
+            if (directory) app.ports.pathChosen.send(directory);
+        });
+});
+
+app.ports.savePath.subscribe((path) => store.set('modPath', path));
+
 // Main
 app.ports.sendMinimize.subscribe(() =>
     BrowserWindow.getFocusedWindow().minimize()
@@ -68,28 +85,16 @@ app.ports.updateApp.subscribe(() => ipcRenderer.send('update-app'));
 
 app.ports.changeUrl.subscribe((url) => app.ports.changedUrl.send(url));
 
-// Welcome
-app.ports.choosePath.subscribe(() => {
-    dialog
-        .showOpenDialog({
-            properties: ['openDirectory'],
-        })
-        .then(({ filePaths }) => filePaths[0])
-        .then((directory) => {
-            if (directory) {
-                app.ports.pathChosen.send(directory);
-            }
-        });
-});
-
-app.ports.savePath.subscribe((path) => store.set('modPath', path));
-
 // Search
 app.ports.downloadMod.subscribe((mod) => ipcRenderer.send('download', mod));
 
 // Installed
 app.ports.uninstallMod.subscribe(({ id, fileName }) => {
     const modPath = store.get('modPath');
-
     ipcRenderer.send('uninstall', { id, fileName, modPath });
+});
+
+// Settings
+app.ports.moveMods.subscribe(({ from, to }) => {
+    ipcRenderer.send('move-mods', { from, to });
 });

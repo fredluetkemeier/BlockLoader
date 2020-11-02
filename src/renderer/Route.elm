@@ -8,6 +8,7 @@ type Route
     = Welcome
     | Search
     | Installed
+    | Settings
 
 
 parseUrl : Url -> Route
@@ -27,4 +28,5 @@ matchRoute =
         , map Welcome (s "welcome")
         , map Search (s "search")
         , map Installed (s "installed")
+        , map Settings (s "settings")
         ]

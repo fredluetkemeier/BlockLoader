@@ -142,3 +142,15 @@ ipcMain.on('uninstall', async (event, { id, fileName, modPath }) => {
         event.reply('uninstallFinished', { id })
     );
 });
+
+ipcMain.on('move-mods', (event, { from, to }) => {
+    fs.readdir(from, (err, files) => {
+        files.forEach((file) =>
+            fs.copyFileSync(path.join(from, file), path.join(to, file))
+        );
+
+        event.reply('mods-moved');
+
+        files.forEach((file) => fs.unlinkSync(path.join(from, file)));
+    });
+});

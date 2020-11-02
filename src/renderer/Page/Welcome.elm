@@ -6,20 +6,12 @@ import Element.Border as Border
 import Element.Font as Font
 import Element.Input exposing (button)
 import Element.Lazy exposing (lazy)
+import Ports exposing (choosePath, pathChosen, savePath)
 import Styles exposing (colors, edges, sizes)
 
 
 
 -- PORTS
-
-
-port choosePath : () -> Cmd msg
-
-
-port pathChosen : (String -> msg) -> Sub msg
-
-
-port savePath : String -> Cmd msg
 
 
 port changeUrl : String -> Cmd msg

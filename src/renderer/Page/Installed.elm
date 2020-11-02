@@ -27,7 +27,7 @@ port uninstallMod :
 
 
 
--- MODEl
+-- MODEL
 
 
 init : ( Model, Cmd Msg )
