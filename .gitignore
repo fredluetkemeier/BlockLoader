@@ -1,4 +1,4 @@
 node_modules/
 dist/
-assets/app.js
+build/
 elm-stuff/

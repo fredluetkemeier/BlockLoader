@@ -1,3 +1,5 @@
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 const path = require('path');
 
 module.exports = () => {
@@ -7,11 +9,13 @@ module.exports = () => {
         mode: isDev ? 'development' : 'production',
         cache: isDev ? true : false,
         devtool: isDev ? 'inline-source' : '',
-        entry: './src/renderer',
+        entry: {
+            app: './src/renderer/index.js',
+        },
         output: {
-            path: path.resolve(__dirname, 'assets'),
-            publicPath: '/assets',
-            filename: 'app.js',
+            path: path.resolve(__dirname, 'dist'),
+            publicPath: '/dist',
+            filename: '[name].[contenthash].js',
         },
         target: 'electron-renderer',
         module: {
@@ -36,5 +40,15 @@ module.exports = () => {
         resolve: {
             extensions: ['.js', '.elm'],
         },
+        plugins: [
+            new HtmlWebpackPlugin({
+                cache: false,
+                chunks: ['app'],
+                template: path.join(__dirname, 'templates/index.html'),
+                filename: 'index.html',
+                inject: 'body',
+            }),
+            new CleanWebpackPlugin(),
+        ],
     };
 };

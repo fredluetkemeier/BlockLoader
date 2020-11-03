@@ -27,7 +27,7 @@ function startServer(port) {
     });
 
     app.get('/', (req, res) => {
-        res.sendFile(path.join(__dirname, '../../assets/index.html'));
+        res.sendFile(path.join(__dirname, '../../dist/index.html'));
     });
 
     return app.listen(port);

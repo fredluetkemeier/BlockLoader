@@ -1,5 +1,5 @@
 import { Elm } from './Main';
-import Store from '../store';
+import Store from './store';
 import { ipcRenderer } from 'electron';
 import { BrowserWindow, dialog } from '@electron/remote';
 

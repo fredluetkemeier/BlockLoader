@@ -1,6 +1,6 @@
 {
     "name": "block-loader",
-    "version": "0.3.0",
+    "version": "0.3.1",
     "description": "A package manager for Minecraft",
     "main": "./src/main/main.js",
     "scripts": {
@@ -26,17 +26,21 @@
         "appId": "fredluetkemeier.BlockLoader",
         "productName": "BlockLoader",
         "files": [
-            "src/**/*",
+            "src/main/*",
+            "dist/*",
             "node_modules/**/*",
             "assets/**/*",
             "package.json"
         ],
         "artifactName": "BlockLoader-${version}.${ext}",
         "win": {
-            "icon": "build/icon.ico"
+            "icon": "assets/icon.ico"
         },
         "nsis": {
-            "installerIcon": "build/icon.ico"
+            "installerIcon": "assets/icon.ico"
+        },
+        "directories": {
+            "output": "build"
         }
     },
     "dependencies": {
@@ -48,6 +52,7 @@
         "portscanner": "^2.2.0"
     },
     "devDependencies": {
+        "clean-webpack-plugin": "^3.0.0",
         "cross-env": "^7.0.2",
         "css-loader": "^4.3.0",
         "electron": "^10.1.3",
@@ -56,6 +61,7 @@
         "elm-hot-webpack-loader": "^1.1.7",
         "elm-webpack-loader": "^6.0.1",
         "file-loader": "^6.1.1",
+        "html-webpack-plugin": "^4.5.0",
         "nodemon": "^2.0.4",
         "sass": "^1.27.0",
         "sass-loader": "^9.0.3",
