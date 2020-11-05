@@ -113,23 +113,36 @@ view context model =
         , width sizes.content
         , height fill
         ]
-        [ viewHeader
+        [ lazy viewHeader context.appVersion
         , lazy viewModPath context.modPath
         ]
 
 
-viewHeader : Element msg
-viewHeader =
-    el
-        [ paddingEach { edges | top = 20, bottom = 15 }
-        , width fill
-        , Font.size 40
-        , Font.color colors.fontLight
+viewHeader : String -> Element msg
+viewHeader appVersion =
+    row
+        [ width fill
+        , paddingEach { edges | top = 20, bottom = 15 }
         , Border.dashed
         , Border.widthEach { edges | bottom = 2 }
         , Border.color colors.backgroundLight
         ]
-        (text "Settings")
+        [ el
+            [ width fill
+            , alignLeft
+            , Font.size 40
+            , Font.color colors.fontLight
+            ]
+            (text "Settings")
+        , el
+            [ alignRight
+            , alignBottom
+            , Font.size 12
+            , Font.letterSpacing 1.0
+            , Font.color colors.fontDark
+            ]
+            (text ("Version " ++ appVersion))
+        ]
 
 
 viewModPath : String -> Element Msg

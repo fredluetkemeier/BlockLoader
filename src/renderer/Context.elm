@@ -1,9 +1,10 @@
-module Context exposing (..)
+module Context exposing (Context)
 
 import Models exposing (InstalledMod)
 
 
 type alias Context =
-    { modPath : String
+    { appVersion : String
+    , modPath : String
     , installedMods : List InstalledMod
     }

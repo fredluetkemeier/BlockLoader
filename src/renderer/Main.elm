@@ -79,7 +79,7 @@ init flags url navKey =
                     decodeFlags flagsJson
 
                 Nothing ->
-                    Flags "" []
+                    Flags "" "" []
 
         initialModel =
             { route = Route.parseUrl urlIntercept
@@ -104,12 +104,14 @@ decodeFlags : String -> Flags
 decodeFlags flagsJson =
     case Decode.decodeString flagsDecoder flagsJson of
         Ok decodedFlags ->
-            { modPath = decodedFlags.modPath
+            { appVersion = decodedFlags.appVersion
+            , modPath = decodedFlags.modPath
             , installedMods = decodedFlags.installedMods
             }
 
         Err _ ->
-            { modPath = ""
+            { appVersion = ""
+            , modPath = ""
             , installedMods = []
             }
 
@@ -117,6 +119,7 @@ decodeFlags flagsJson =
 flagsDecoder : Decoder Flags
 flagsDecoder =
     Decode.succeed Flags
+        |> required "appVersion" string
         |> required "modPath" string
         |> required "installedMods" (list installedModDecoder)
 
@@ -160,7 +163,8 @@ initCurrentPage ( model, existingCmds ) =
 
 
 type alias Flags =
-    { modPath : String
+    { appVersion : String
+    , modPath : String
     , installedMods : List InstalledMod
     }
 

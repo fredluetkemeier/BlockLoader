@@ -1,7 +1,26 @@
 import { Elm } from './Main';
 import Store from './store';
 import { ipcRenderer } from 'electron';
-import { BrowserWindow, dialog } from '@electron/remote';
+import { BrowserWindow, dialog, app as electronApp } from '@electron/remote';
+
+// ------
+// STARTUP
+// ------
+//
+const store = new Store({
+    configName: 'user-config',
+    initialData: { modPath: '', installedMods: [] },
+});
+
+const { modPath, installedMods } = store.getAll();
+
+const app = Elm.Main.init({
+    flags: JSON.stringify({
+        modPath,
+        installedMods,
+        appVersion: electronApp.getVersion(),
+    }),
+});
 
 // ------
 // EVENTS
@@ -29,24 +48,6 @@ ipcRenderer.on('uninstallFinished', (event, { id }) => {
 });
 
 ipcRenderer.on('mods-moved', () => app.ports.modsMoved.send(null));
-
-// ------
-// STARTUP
-// ------
-//
-const store = new Store({
-    configName: 'user-config',
-    initialData: { modPath: '', installedMods: [] },
-});
-
-const { modPath, installedMods } = store.getAll();
-
-const app = Elm.Main.init({
-    flags: JSON.stringify({
-        modPath,
-        installedMods,
-    }),
-});
 
 // ------
 // PORTS
