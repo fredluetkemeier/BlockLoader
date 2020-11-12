@@ -27,6 +27,19 @@ import Task
 import Time
 
 
+init : ( Model, Cmd Msg )
+init =
+    let
+        initialModel =
+            { searchTerm = ""
+            , lastInputTime = 0
+            , lastResultTime = Nothing
+            , mods = RemoteData.Loading
+            }
+    in
+    ( initialModel, Task.perform (Time.posixToMillis >> Search initialModel.searchTerm) Time.now )
+
+
 
 -- PORTS
 
@@ -50,19 +63,6 @@ port downloadMod :
 
 
 -- MODEL
-
-
-init : ( Model, Cmd Msg )
-init =
-    let
-        initialModel =
-            { searchTerm = ""
-            , lastInputTime = 0
-            , lastResultTime = Nothing
-            , mods = RemoteData.Loading
-            }
-    in
-    ( initialModel, Task.perform (Time.posixToMillis >> Search initialModel.searchTerm) Time.now )
 
 
 debounceTime : Int

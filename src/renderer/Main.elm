@@ -38,38 +38,6 @@ main =
         }
 
 
-
--- PORTS
-
-
-port sendMinimize : () -> Cmd msg
-
-
-port sendMaximize : () -> Cmd msg
-
-
-port sendExit : () -> Cmd msg
-
-
-port updateApp : () -> Cmd msg
-
-
-port changedUrl : (String -> msg) -> Sub msg
-
-
-port downloadProgress : ({ id : String, percentage : Float } -> msg) -> Sub msg
-
-
-port updateAvailable : (() -> msg) -> Sub msg
-
-
-port modUninstalled : (String -> msg) -> Sub msg
-
-
-
--- MODEL
-
-
 init : Maybe String -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init flags url navKey =
     let
@@ -160,6 +128,38 @@ initCurrentPage ( model, existingCmds ) =
     ( { model | page = currentPage }
     , Cmd.batch [ existingCmds, mappedPageCmds ]
     )
+
+
+
+-- PORTS
+
+
+port sendMinimize : () -> Cmd msg
+
+
+port sendMaximize : () -> Cmd msg
+
+
+port sendExit : () -> Cmd msg
+
+
+port updateApp : () -> Cmd msg
+
+
+port changedUrl : (String -> msg) -> Sub msg
+
+
+port downloadProgress : ({ id : String, percentage : Float } -> msg) -> Sub msg
+
+
+port updateAvailable : (() -> msg) -> Sub msg
+
+
+port modUninstalled : (String -> msg) -> Sub msg
+
+
+
+-- MODEL
 
 
 type alias Flags =
