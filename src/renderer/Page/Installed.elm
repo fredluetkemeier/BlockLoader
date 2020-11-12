@@ -188,9 +188,9 @@ viewSearchInput searchTerm =
                     , Font.color colors.fontDark
                     , Font.size 16
                     ]
-                    (text "Search for installed mods")
+                    (text "Search your installed mods")
                 )
-        , label = Input.labelHidden "Search for installed mods"
+        , label = Input.labelHidden "Search your installed mods"
         }
 
 
