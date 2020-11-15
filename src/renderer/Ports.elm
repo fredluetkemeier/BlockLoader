@@ -8,3 +8,6 @@ port pathChosen : (String -> msg) -> Sub msg
 
 
 port savePath : String -> Cmd msg
+
+
+port modUninstalled : (String -> msg) -> Sub msg

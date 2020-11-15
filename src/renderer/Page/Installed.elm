@@ -11,6 +11,7 @@ import Element.Lazy exposing (lazy2)
 import Html.Attributes exposing (style)
 import List.Extra as List
 import Models exposing (InstalledMod)
+import Ports exposing (modUninstalled)
 import String.Extra as String
 import Styles exposing (colors, edges, sizes)
 
@@ -63,6 +64,7 @@ type Msg
     | FocusCard String
     | ClearFocus
     | UninstallMod String
+    | RemoveInstalledMod String
 
 
 update : Context -> Msg -> Model -> ( Context, Model, Cmd Msg )
@@ -115,6 +117,13 @@ update context msg model =
             in
             ( context, model, newCmd )
 
+        RemoveInstalledMod id ->
+            let
+                newFilteredMods =
+                    model.filteredMods |> List.filter (\mod -> mod.id /= id)
+            in
+            ( context, { model | filteredMods = newFilteredMods }, Cmd.none )
+
 
 
 -- SUBSCRIPTIONS
@@ -122,7 +131,9 @@ update context msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    Sub.none
+    Sub.batch
+        [ modUninstalled RemoveInstalledMod
+        ]
 
 
 

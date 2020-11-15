@@ -18,6 +18,7 @@ import Page.Installed as Installed
 import Page.Search as Search
 import Page.Settings as Settings
 import Page.Welcome as Welcome
+import Ports exposing (modUninstalled)
 import Progress
 import Route exposing (Route)
 import Styles exposing (colors, edges, sizes)
@@ -154,9 +155,6 @@ port downloadProgress : ({ id : String, percentage : Float } -> msg) -> Sub msg
 port updateAvailable : (() -> msg) -> Sub msg
 
 
-port modUninstalled : (String -> msg) -> Sub msg
-
-
 
 -- MODEL
 
@@ -191,6 +189,9 @@ subscriptions model =
 
                 SearchPage pageModel ->
                     Sub.map SearchPageMsg (Search.subscriptions pageModel)
+
+                InstalledPage pageModel ->
+                    Sub.map InstalledPageMsg (Installed.subscriptions pageModel)
 
                 SettingsPage pageModel ->
                     Sub.map SettingsPageMsg (Settings.subscriptions pageModel)
