@@ -5,12 +5,11 @@ import Browser.Navigation as Nav
 import Context exposing (Context)
 import Element exposing (..)
 import Element.Background as Background
-import Element.Events as Events exposing (onClick)
+import Element.Events as Events
 import Element.Font as Font
 import Element.Input exposing (button)
-import Element.Lazy exposing (lazy, lazy2)
+import Element.Lazy exposing (lazy2)
 import Html.Attributes exposing (class)
-import Html.Events exposing (onMouseOver)
 import Json.Decode as Decode exposing (Decoder, list, string)
 import Json.Decode.Pipeline exposing (required)
 import List.Extra as List
@@ -19,7 +18,7 @@ import Page.Installed as Installed
 import Page.Search as Search
 import Page.Settings as Settings
 import Page.Welcome as Welcome
-import Progress exposing (Progress)
+import Progress
 import Route exposing (Route)
 import Styles exposing (colors, edges, sizes)
 import UpdateStatus exposing (UpdateStatus)

@@ -20,7 +20,6 @@ import Process
 import Progress exposing (Progress)
 import RemoteData exposing (WebData)
 import Round as Round
-import String exposing (fromFloat)
 import String.Extra as String
 import Styles exposing (colors, edges, sizes)
 import Task

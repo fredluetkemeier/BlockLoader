@@ -7,7 +7,7 @@ import Element.Border as Border
 import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input exposing (button)
-import Element.Lazy exposing (lazy, lazy2)
+import Element.Lazy exposing (lazy2)
 import Html.Attributes exposing (style)
 import List.Extra as List
 import Models exposing (InstalledMod)

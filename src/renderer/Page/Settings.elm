@@ -2,7 +2,7 @@ port module Page.Settings exposing (Model, Msg, init, subscriptions, update, vie
 
 import Context exposing (Context)
 import Element exposing (..)
-import Element.Background as Background exposing (gradient)
+import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Element.Input exposing (button)
