@@ -8,6 +8,7 @@ import Element.Font as Font
 import Element.Input exposing (button)
 import Element.Lazy exposing (lazy)
 import Ports exposing (choosePath, pathChosen, savePath)
+import Progress exposing (Progress)
 import Styles exposing (colors, edges, sizes)
 
 
@@ -29,7 +30,7 @@ init : ( Model, Cmd Msg )
 init =
     let
         initialModel =
-            { newModPath = Empty
+            { newModPath = Progress.NotStarted
             }
     in
     ( initialModel, Cmd.none )
@@ -40,7 +41,7 @@ init =
 
 
 type alias Model =
-    { newModPath : SettingProgress String
+    { newModPath : Progress String
     }
 
 
@@ -54,11 +55,6 @@ type Msg
     | ModsMoved
 
 
-type SettingProgress a
-    = Empty
-    | Saving a
-
-
 update : Context -> Msg -> Model -> ( Context, Model, Cmd Msg )
 update context msg model =
     case msg of
@@ -67,7 +63,7 @@ update context msg model =
 
         PathChosen path ->
             ( context
-            , { model | newModPath = Saving path }
+            , { model | newModPath = Progress.Loading path }
             , moveMods
                 { from = context.modPath
                 , to = path
@@ -78,14 +74,14 @@ update context msg model =
             let
                 newModPath =
                     case model.newModPath of
-                        Saving path ->
+                        Progress.Loading path ->
                             path
 
-                        Empty ->
+                        _ ->
                             ""
             in
             ( { context | modPath = newModPath }
-            , { model | newModPath = Empty }
+            , { model | newModPath = Progress.NotStarted }
             , savePath newModPath
             )
 
@@ -107,7 +103,7 @@ subscriptions _ =
 
 
 view : Context -> Model -> Element Msg
-view context model =
+view context _ =
     column
         [ centerX
         , width sizes.content

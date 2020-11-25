@@ -14,6 +14,7 @@ import Json.Decode as Decode exposing (Decoder, list, string)
 import Json.Decode.Pipeline exposing (required)
 import List.Extra as List
 import Models exposing (InstalledMod, installedModDecoder)
+import Page.Details as Details
 import Page.Installed as Installed
 import Page.Search as Search
 import Page.Settings as Settings
@@ -124,6 +125,17 @@ initCurrentPage ( model, existingCmds ) =
                             Settings.init
                     in
                     ( SettingsPage pageModel, Cmd.map SettingsPageMsg pageCmds )
+
+                Route.Details id ->
+                    let
+                        flags =
+                            { id = id
+                            }
+
+                        ( pageModel, pageCmds ) =
+                            Details.init flags
+                    in
+                    ( DetailsPage pageModel, Cmd.map DetailsPageMsg pageCmds )
     in
     ( { model | page = currentPage }
     , Cmd.batch [ existingCmds, mappedPageCmds ]
@@ -196,6 +208,9 @@ subscriptions model =
                 SettingsPage pageModel ->
                     Sub.map SettingsPageMsg (Settings.subscriptions pageModel)
 
+                DetailsPage pageModel ->
+                    Sub.map DetailsPageMsg (Details.subscriptions pageModel)
+
                 _ ->
                     Sub.none
     in
@@ -237,6 +252,7 @@ type Msg
     | SearchPageMsg Search.Msg
     | InstalledPageMsg Installed.Msg
     | SettingsPageMsg Settings.Msg
+    | DetailsPageMsg Details.Msg
     | ChangedUrl Url
     | ClickedLink UrlRequest
     | Minimize
@@ -254,6 +270,7 @@ type Page
     | SearchPage Search.Model
     | InstalledPage Installed.Model
     | SettingsPage Settings.Model
+    | DetailsPage Details.Model
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -309,6 +326,18 @@ update msg model =
                 , context = updatedContext
               }
             , Cmd.map SettingsPageMsg updatedCmd
+            )
+
+        ( DetailsPageMsg pageMsg, DetailsPage pageModel ) ->
+            let
+                ( updatedContext, updatedPageModel, updatedCmd ) =
+                    Details.update context pageMsg pageModel
+            in
+            ( { model
+                | page = DetailsPage updatedPageModel
+                , context = updatedContext
+              }
+            , Cmd.map DetailsPageMsg updatedCmd
             )
 
         ( ClickedLink urlRequest, _ ) ->
@@ -613,3 +642,7 @@ viewPage context page =
         SettingsPage model ->
             Settings.view context model
                 |> Element.map SettingsPageMsg
+
+        DetailsPage model ->
+            Details.view context model
+                |> Element.map DetailsPageMsg

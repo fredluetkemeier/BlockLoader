@@ -9,6 +9,7 @@ type Route
     | Search
     | Installed
     | Settings
+    | Details String
 
 
 parseUrl : Url -> Route
@@ -29,4 +30,5 @@ matchRoute =
         , map Search (s "search")
         , map Installed (s "installed")
         , map Settings (s "settings")
+        , map Details (s "details" </> string)
         ]
