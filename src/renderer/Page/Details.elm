@@ -19,9 +19,10 @@ init flags =
     let
         initialModel =
             { id = flags.id
+            , mod = RemoteData.Loading
             }
     in
-    ( initialModel, Cmd.none )
+    ( initialModel, getModDetails flags.id )
 
 
 
@@ -35,6 +36,7 @@ type alias Flags =
 
 type alias Model =
     { id : String
+    , mod : WebData Mod
     }
 
 
