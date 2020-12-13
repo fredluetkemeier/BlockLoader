@@ -2,8 +2,8 @@ module Page.Details exposing (Model, Msg, init, subscriptions, update, view)
 
 import Context exposing (Context)
 import Element exposing (..)
-import GraphQl exposing (Named, Operation, Query)
-import GraphQl.Http as GraphQl
+import GraphQl as GQL exposing (Named, Operation, Query)
+import GraphQl.Http as GQL
 import Json.Decode as Decode exposing (Decoder, field, int, list, string)
 import Json.Decode.Pipeline exposing (optional, required)
 import Models exposing (Thumbnail, thumbnailDecoder)
@@ -80,8 +80,8 @@ update context msg model =
 
 getModDetails : String -> Cmd Msg
 getModDetails id =
-    GraphQl.query (getModDetailsQuery id)
-        |> GraphQl.send
+    GQL.query (getModDetailsQuery id)
+        |> GQL.send
             { url = "/graphql"
             , headers = []
             }
@@ -91,8 +91,30 @@ getModDetails id =
 
 getModDetailsQuery : String -> Operation Query Named
 getModDetailsQuery id =
-    GraphQl.named "GetDetails"
-        [ GraphQl.field "mod"
+    GQL.named "GetDetails"
+        [ GQL.field "mod"
+            |> GQL.withArgument "id" (GQL.string id)
+            |> GQL.withSelectors
+                [ GQL.field "id"
+                , GQL.field "name"
+                , GQL.field "downloadCount"
+                , GQL.field "latestFile"
+                    |> GQL.withSelectors
+                        [ GQL.field "url"
+                        , GQL.field "name"
+                        , GQL.field "date"
+                        ]
+                , GQL.field "authors"
+                    |> GQL.withSelectors
+                        [ GQL.field "id"
+                        , GQL.field "name"
+                        ]
+                , GQL.field "thumbnail"
+                    |> GQL.withSelectors
+                        [ GQL.field "url"
+                        , GQL.field "description"
+                        ]
+                ]
         ]
 
 

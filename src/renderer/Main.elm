@@ -225,11 +225,7 @@ subscriptions model =
 
 toUrl : String -> Url
 toUrl string =
-    let
-        maybeUrl =
-            Url.fromString string
-    in
-    case maybeUrl of
+    case Url.fromString string of
         Just url ->
             url
 
