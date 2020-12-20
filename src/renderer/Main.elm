@@ -24,7 +24,7 @@ import Progress
 import Route exposing (Route)
 import Styles exposing (colors, edges, sizes)
 import UpdateStatus exposing (UpdateStatus)
-import Url as Url exposing (Protocol(..), Url)
+import Url exposing (Protocol(..), Url)
 
 
 main : Program (Maybe String) Model Msg

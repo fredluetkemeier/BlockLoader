@@ -462,6 +462,47 @@ viewDownloadCount count =
         )
 
 
+abbreviate : Int -> String
+abbreviate number =
+    let
+        abbreviations =
+            Dict.fromList
+                [ ( 1, "K" )
+                , ( 2, "M" )
+                , ( 3, "B" )
+                , ( 4, "T" )
+                ]
+
+        lengthOfNumber =
+            number
+                |> String.fromInt
+                |> String.length
+                |> toFloat
+
+        numberOfThousands =
+            floor ((lengthOfNumber - 1) / 3) |> toFloat
+
+        shortenedNumber =
+            toFloat number
+                / (10 ^ (lengthOfNumber - 1 - (3 - numberOfThousands)))
+                |> Round.round 1
+
+        abbreviation =
+            case Dict.get numberOfThousands abbreviations of
+                Just value ->
+                    value
+
+                Nothing ->
+                    ""
+    in
+    case abbreviation of
+        "" ->
+            number |> String.fromInt
+
+        _ ->
+            String.join " " [ shortenedNumber, abbreviation ]
+
+
 viewAuthors : List Author -> Element msg
 viewAuthors authors =
     let
@@ -505,48 +546,3 @@ viewDownloadStatus progress mod =
                             }
                     }
         )
-
-
-
--- EXTRAS
-
-
-abbreviate : Int -> String
-abbreviate number =
-    let
-        abbreviations =
-            Dict.fromList
-                [ ( 1, "K" )
-                , ( 2, "M" )
-                , ( 3, "B" )
-                , ( 4, "T" )
-                ]
-
-        lengthOfNumber =
-            number
-                |> String.fromInt
-                |> String.length
-                |> toFloat
-
-        numberOfThousands =
-            floor ((lengthOfNumber - 1) / 3) |> toFloat
-
-        shortenedNumber =
-            toFloat number
-                / (10 ^ (lengthOfNumber - 1 - (3 - numberOfThousands)))
-                |> Round.round 1
-
-        abbreviation =
-            case Dict.get numberOfThousands abbreviations of
-                Just value ->
-                    value
-
-                Nothing ->
-                    ""
-    in
-    case abbreviation of
-        "" ->
-            number |> String.fromInt
-
-        _ ->
-            String.join " " [ shortenedNumber, abbreviation ]
