@@ -75,7 +75,7 @@ update : Context -> Msg -> Model -> ( Context, Model, Cmd Msg )
 update context msg model =
     case msg of
         ReceivedDetails mod ->
-            ( context, model, Cmd.none )
+            ( context, { model | mod = mod }, Cmd.none )
 
 
 getModDetails : String -> Cmd Msg
