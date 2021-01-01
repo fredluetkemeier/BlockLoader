@@ -62,11 +62,7 @@ function createMainWindow() {
     mainWindow = new BrowserWindow({
         width: 1000,
         height: 720,
-        webPreferences: {
-            nodeIntegration: true,
-            enableRemoteModule: true,
-            webSecurity: false,
-        },
+        webPreferences: {},
         show: false,
         frame: false,
         movable: true,
@@ -97,6 +93,26 @@ app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
         createMainWindow();
     }
+});
+
+ipcMain.on('open-mod-path-dialog', (event) =>
+    dialog
+        .showOpenDialog({
+            properties: ['openDirectory'],
+        })
+        .then(({ filePaths }) => filePaths[0])
+        .then((directory) => {
+            if (directory) event.reply('mod-path-chosen', directory);
+        })
+);
+
+ipcMain.on('minimize', () => BrowserWindow.getFocusedWindow().minimize());
+
+ipcMain.on('maximize', () => {
+    const focusedWindow = BrowserWindow.getFocusedWindow();
+    focusedWindow.isMaximized()
+        ? focusedWindow.unmaximize()
+        : focusedWindow.maximize();
 });
 
 ipcMain.on('exit', () => app.exit());

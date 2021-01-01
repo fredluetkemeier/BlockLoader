@@ -1,7 +1,7 @@
 import { Elm } from './Main';
 import Store from './store';
 import { ipcRenderer } from 'electron';
-import { BrowserWindow, dialog, app as electronApp } from '@electron/remote';
+import { app as electronApp } from '@electron/remote';
 
 // ------
 // STARTUP
@@ -55,30 +55,18 @@ ipcRenderer.on('mods-moved', () => app.ports.modsMoved.send(null));
 //
 
 // Shared
-app.ports.choosePath.subscribe(() => {
-    dialog
-        .showOpenDialog({
-            properties: ['openDirectory'],
-        })
-        .then(({ filePaths }) => filePaths[0])
-        .then((directory) => {
-            if (directory) app.ports.pathChosen.send(directory);
-        });
-});
+app.ports.choosePath.subscribe(() => ipcRenderer.send('open-mod-path-dialog'));
+
+ipcRenderer.on('mod-path-chosen', (_, directory) =>
+    app.ports.pathChosen.send(directory)
+);
 
 app.ports.savePath.subscribe((path) => store.set('modPath', path));
 
 // Main
-app.ports.sendMinimize.subscribe(() =>
-    BrowserWindow.getFocusedWindow().minimize()
-);
+app.ports.sendMinimize.subscribe(() => ipcRenderer.send('minimize'));
 
-app.ports.sendMaximize.subscribe(() => {
-    const focusedWindow = BrowserWindow.getFocusedWindow();
-    focusedWindow.isMaximized()
-        ? focusedWindow.unmaximize()
-        : focusedWindow.maximize();
-});
+app.ports.sendMaximize.subscribe(() => ipcRenderer.send('maximize'));
 
 app.ports.sendExit.subscribe(() => ipcRenderer.send('exit'));
 
