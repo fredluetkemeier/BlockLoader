@@ -8,7 +8,6 @@ module.exports = () => {
     return {
         mode: isDev ? 'development' : 'production',
         cache: isDev ? true : false,
-        devtool: isDev ? 'inline-source' : '',
         entry: {
             app: './src/renderer/index.js',
         },
@@ -29,8 +28,6 @@ module.exports = () => {
                             options: {
                                 cwd: __dirname,
                                 pathToElm: 'node_modules/.bin/elm',
-                                optimize: isDev ? false : true,
-                                cache: false,
                             },
                         },
                     ],
