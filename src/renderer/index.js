@@ -1,7 +1,6 @@
 import { Elm } from './Main';
 import Store from './store';
 import { ipcRenderer } from 'electron';
-import { app as electronApp } from '@electron/remote';
 
 // ------
 // STARTUP
@@ -18,26 +17,31 @@ const app = Elm.Main.init({
     flags: JSON.stringify({
         modPath,
         installedMods,
-        appVersion: electronApp.getVersion(),
     }),
 });
+
+ipcRenderer.send('request-app-version');
 
 // ------
 // EVENTS
 // ------
 //
+ipcRenderer.on('app-version', (_event, appVersion) =>
+    app.ports.appVersionReceived(appVersion)
+);
+
 ipcRenderer.on('update-available', () => app.ports.updateAvailable.send(null));
 
-ipcRenderer.on('downloadProgress', (event, { id, percentage }) =>
+ipcRenderer.on('downloadProgress', (_event, { id, percentage }) =>
     app.ports.downloadProgress.send({ id, percentage })
 );
 
-ipcRenderer.on('downloadFinished', (event, { mod }) => {
+ipcRenderer.on('downloadFinished', (_event, { mod }) => {
     const installedMods = store.get('installedMods');
     store.set('installedMods', [...installedMods, mod]);
 });
 
-ipcRenderer.on('uninstallFinished', (event, { id }) => {
+ipcRenderer.on('uninstallFinished', (_event, { id }) => {
     const installedMods = store.get('installedMods');
     store.set(
         'installedMods',

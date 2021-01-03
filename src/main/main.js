@@ -117,6 +117,10 @@ ipcMain.on('maximize', () => {
 
 ipcMain.on('exit', () => app.exit());
 
+ipcMain.on('request-app-version', (event) =>
+    event.reply('app-version', app.getVersion())
+);
+
 autoUpdater.on('update-available', () =>
     mainWindow.webContents.send('update-available')
 );

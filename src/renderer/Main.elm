@@ -42,20 +42,20 @@ main =
 init : Maybe String -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init flags url navKey =
     let
-        initialContext =
+        decodedFlags =
             case flags of
                 Just flagsJson ->
                     decodeFlags flagsJson
 
                 Nothing ->
-                    Flags "" "" []
+                    { modPath = ""
+                    , installedMods = []
+                    }
 
-        initialModel =
-            { route = Route.parseUrl urlIntercept
-            , page = None
-            , navKey = navKey
-            , context = initialContext
-            , updateStatus = UpdateStatus.NotAvailable
+        initialContext =
+            { appVersion = ""
+            , modPath = decodedFlags.modPath
+            , installedMods = decodedFlags.installedMods
             }
 
         urlIntercept =
@@ -65,6 +65,14 @@ init flags url navKey =
 
                 _ ->
                     url
+
+        initialModel =
+            { route = Route.parseUrl urlIntercept
+            , page = None
+            , navKey = navKey
+            , context = initialContext
+            , updateStatus = UpdateStatus.NotAvailable
+            }
     in
     initCurrentPage ( initialModel, Cmd.none )
 
@@ -73,14 +81,12 @@ decodeFlags : String -> Flags
 decodeFlags flagsJson =
     case Decode.decodeString flagsDecoder flagsJson of
         Ok decodedFlags ->
-            { appVersion = decodedFlags.appVersion
-            , modPath = decodedFlags.modPath
+            { modPath = decodedFlags.modPath
             , installedMods = decodedFlags.installedMods
             }
 
         Err _ ->
-            { appVersion = ""
-            , modPath = ""
+            { modPath = ""
             , installedMods = []
             }
 
@@ -88,7 +94,6 @@ decodeFlags flagsJson =
 flagsDecoder : Decoder Flags
 flagsDecoder =
     Decode.succeed Flags
-        |> required "appVersion" string
         |> required "modPath" string
         |> required "installedMods" (list installedModDecoder)
 
@@ -155,6 +160,12 @@ port sendMaximize : () -> Cmd msg
 port sendExit : () -> Cmd msg
 
 
+port appVersionReceived : (String -> msg) -> Sub msg
+
+
+port updateAvailable : (() -> msg) -> Sub msg
+
+
 port updateApp : () -> Cmd msg
 
 
@@ -164,16 +175,12 @@ port changedUrl : (String -> msg) -> Sub msg
 port downloadProgress : ({ id : String, percentage : Float } -> msg) -> Sub msg
 
 
-port updateAvailable : (() -> msg) -> Sub msg
-
-
 
 -- MODEL
 
 
 type alias Flags =
-    { appVersion : String
-    , modPath : String
+    { modPath : String
     , installedMods : List InstalledMod
     }
 
@@ -216,9 +223,10 @@ subscriptions model =
     in
     Sub.batch
         [ pageSubscriptions
+        , appVersionReceived AppVersionReceived
+        , updateAvailable (always UpdateAvailable)
         , changedUrl (toUrl >> ChangedUrl)
         , downloadProgress SetDownloadProgress
-        , updateAvailable (always UpdateAvailable)
         , modUninstalled RemoveInstalledMod
         ]
 
@@ -254,6 +262,7 @@ type Msg
     | Minimize
     | Maximize
     | Exit
+    | AppVersionReceived String
     | SetDownloadProgress { id : String, percentage : Float }
     | UpdateAvailable
     | UpdateApp
@@ -365,6 +374,21 @@ update msg model =
         ( Exit, _ ) ->
             ( model, sendExit () )
 
+        ( AppVersionReceived appVersion, _ ) ->
+            let
+                updatedContext =
+                    { context
+                        | appVersion = appVersion
+                    }
+            in
+            ( { model | context = updatedContext }, Cmd.none )
+
+        ( UpdateAvailable, _ ) ->
+            ( { model | updateStatus = UpdateStatus.Available }, Cmd.none )
+
+        ( UpdateApp, _ ) ->
+            ( { model | updateStatus = UpdateStatus.Downloading }, updateApp () )
+
         ( SetDownloadProgress { id, percentage }, _ ) ->
             let
                 progress =
@@ -387,12 +411,6 @@ update msg model =
                     }
             in
             ( { model | context = updatedContext }, Cmd.none )
-
-        ( UpdateAvailable, _ ) ->
-            ( { model | updateStatus = UpdateStatus.Available }, Cmd.none )
-
-        ( UpdateApp, _ ) ->
-            ( { model | updateStatus = UpdateStatus.Downloading }, updateApp () )
 
         ( RemoveInstalledMod id, _ ) ->
             let
