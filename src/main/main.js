@@ -5,8 +5,8 @@ const fs = require('fs');
 const axios = require('axios');
 const { startServer } = require('./server');
 const { findAPortNotInUse } = require('portscanner');
+const Store = require('./store');
 
-require('@electron/remote/main').initialize();
 const isDev = require('electron-is-dev');
 
 let PORT;
@@ -26,6 +26,11 @@ setInterval(() => {
 // ------
 // STARTUP
 // ------
+const store = new Store({
+    configName: 'user-config',
+    initialData: { modPath: '', installedMods: [] },
+});
+
 app.whenReady()
     .then(createStartupWindow)
     .then(() => findAPortNotInUse(3000, 9000))
@@ -62,7 +67,9 @@ function createMainWindow() {
     mainWindow = new BrowserWindow({
         width: 1000,
         height: 720,
-        webPreferences: {},
+        webPreferences: {
+            nodeIntegration: true,
+        },
         show: false,
         frame: false,
         movable: true,
@@ -95,6 +102,13 @@ app.on('activate', () => {
     }
 });
 
+ipcMain.handle('get-initial-data', () => {
+    const { modPath, installedMods } = store.getAll();
+    const appVersion = app.getVersion();
+
+    return { modPath, installedMods, appVersion };
+});
+
 ipcMain.on('open-mod-path-dialog', (event) =>
     dialog
         .showOpenDialog({
@@ -116,10 +130,6 @@ ipcMain.on('maximize', () => {
 });
 
 ipcMain.on('exit', () => app.exit());
-
-ipcMain.on('request-app-version', (event) =>
-    event.reply('app-version', app.getVersion())
-);
 
 autoUpdater.on('update-available', () =>
     mainWindow.webContents.send('update-available')

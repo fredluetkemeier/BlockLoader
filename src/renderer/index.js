@@ -1,34 +1,27 @@
 import { Elm } from './Main';
-import Store from './store';
 import { ipcRenderer } from 'electron';
 
 // ------
 // STARTUP
 // ------
 //
-const store = new Store({
-    configName: 'user-config',
-    initialData: { modPath: '', installedMods: [] },
-});
 
-const { modPath, installedMods } = store.getAll();
+const { modPath, installedMods, appVersion } = await ipcRenderer.invoke(
+    'get-initial-data'
+);
 
 const app = Elm.Main.init({
     flags: JSON.stringify({
         modPath,
         installedMods,
+        appVersion,
     }),
 });
-
-ipcRenderer.send('request-app-version');
 
 // ------
 // EVENTS
 // ------
 //
-ipcRenderer.on('app-version', (_event, appVersion) =>
-    app.ports.appVersionReceived(appVersion)
-);
 
 ipcRenderer.on('update-available', () => app.ports.updateAvailable.send(null));
 

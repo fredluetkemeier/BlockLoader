@@ -26,8 +26,7 @@ module.exports = () => {
                         {
                             loader: 'elm-webpack-loader',
                             options: {
-                                cwd: __dirname,
-                                pathToElm: 'node_modules/.bin/elm',
+                                debug: false,
                             },
                         },
                     ],
@@ -47,5 +46,8 @@ module.exports = () => {
             }),
             new CleanWebpackPlugin(),
         ],
+        experiments: {
+            topLevelAwait: true,
+        },
     };
 };

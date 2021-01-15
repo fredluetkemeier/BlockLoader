@@ -50,10 +50,11 @@ init flags url navKey =
                 Nothing ->
                     { modPath = ""
                     , installedMods = []
+                    , appVersion = ""
                     }
 
         initialContext =
-            { appVersion = ""
+            { appVersion = decodedFlags.appVersion
             , modPath = decodedFlags.modPath
             , installedMods = decodedFlags.installedMods
             }
@@ -83,11 +84,13 @@ decodeFlags flagsJson =
         Ok decodedFlags ->
             { modPath = decodedFlags.modPath
             , installedMods = decodedFlags.installedMods
+            , appVersion = decodedFlags.appVersion
             }
 
         Err _ ->
             { modPath = ""
             , installedMods = []
+            , appVersion = ""
             }
 
 
@@ -96,6 +99,7 @@ flagsDecoder =
     Decode.succeed Flags
         |> required "modPath" string
         |> required "installedMods" (list installedModDecoder)
+        |> required "appVersion" string
 
 
 initCurrentPage : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -160,9 +164,6 @@ port sendMaximize : () -> Cmd msg
 port sendExit : () -> Cmd msg
 
 
-port appVersionReceived : (String -> msg) -> Sub msg
-
-
 port updateAvailable : (() -> msg) -> Sub msg
 
 
@@ -182,6 +183,7 @@ port downloadProgress : ({ id : String, percentage : Float } -> msg) -> Sub msg
 type alias Flags =
     { modPath : String
     , installedMods : List InstalledMod
+    , appVersion : String
     }
 
 
@@ -223,7 +225,6 @@ subscriptions model =
     in
     Sub.batch
         [ pageSubscriptions
-        , appVersionReceived AppVersionReceived
         , updateAvailable (always UpdateAvailable)
         , changedUrl (toUrl >> ChangedUrl)
         , downloadProgress SetDownloadProgress
@@ -262,7 +263,6 @@ type Msg
     | Minimize
     | Maximize
     | Exit
-    | AppVersionReceived String
     | SetDownloadProgress { id : String, percentage : Float }
     | UpdateAvailable
     | UpdateApp
@@ -373,15 +373,6 @@ update msg model =
 
         ( Exit, _ ) ->
             ( model, sendExit () )
-
-        ( AppVersionReceived appVersion, _ ) ->
-            let
-                updatedContext =
-                    { context
-                        | appVersion = appVersion
-                    }
-            in
-            ( { model | context = updatedContext }, Cmd.none )
 
         ( UpdateAvailable, _ ) ->
             ( { model | updateStatus = UpdateStatus.Available }, Cmd.none )
