@@ -162,5 +162,5 @@ subscriptions _ =
 
 
 view : Context -> Model -> Element Msg
-view _ _ =
-    Element.none
+view _ model =
+    text model.id

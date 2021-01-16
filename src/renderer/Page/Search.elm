@@ -415,7 +415,12 @@ viewResult result =
             , color = colors.backgroundDark
             }
         ]
-        [ viewModInfo mod
+        [ link
+            [ width fill
+            ]
+            { url = "/details/" ++ mod.id
+            , label = viewModInfo mod
+            }
         , viewDownloadStatus progress mod
         ]
 
