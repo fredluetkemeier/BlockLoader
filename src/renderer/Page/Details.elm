@@ -8,6 +8,7 @@ import Json.Decode as Decode exposing (Decoder, field, int, list, string)
 import Json.Decode.Pipeline exposing (optional, required)
 import Models exposing (Thumbnail, thumbnailDecoder)
 import RemoteData exposing (WebData)
+import Styles exposing (sizes)
 
 
 
@@ -163,4 +164,42 @@ subscriptions _ =
 
 view : Context -> Model -> Element Msg
 view _ model =
-    text model.id
+    case model.mod of
+        RemoteData.Loading ->
+            text "Loading..."
+
+        RemoteData.Success mod ->
+            viewDetails (Just mod)
+
+        _ ->
+            text "Failed..."
+
+
+viewDetails : Maybe Mod -> Element msg
+viewDetails maybeMod =
+    let
+        { maybeName } =
+            case maybeMod of
+                Just mod ->
+                    { maybeName = Just mod.name
+                    }
+
+                Nothing ->
+                    { maybeName = Nothing
+                    }
+    in
+    el [ width sizes.content ]
+        (column []
+            [ viewName maybeName
+            ]
+        )
+
+
+viewName : Maybe String -> Element msg
+viewName maybeName =
+    case maybeName of
+        Just name ->
+            el [] (text name)
+
+        Nothing ->
+            Element.none
