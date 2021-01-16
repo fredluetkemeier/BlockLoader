@@ -120,6 +120,10 @@ ipcMain.on('open-mod-path-dialog', (event) =>
         })
 );
 
+ipcMain.on('save-path', (event, path) => {
+    store.set('modPath', path);
+});
+
 ipcMain.on('minimize', () => BrowserWindow.getFocusedWindow().minimize());
 
 ipcMain.on('maximize', () => {
@@ -164,13 +168,24 @@ ipcMain.on('download', async (event, { url, modPath, mod }) => {
 
     data.pipe(writer);
 
-    writer.on('finish', () => event.reply('downloadFinished', { mod }));
+    writer.on('finish', () => {
+        const installedMods = store.get('installedMods');
+        store.set('installedMods', [...installedMods, mod]);
+    });
 });
 
-ipcMain.on('uninstall', async (event, { id, fileName, modPath }) => {
-    fs.unlink(path.resolve(modPath, fileName), () =>
-        event.reply('uninstallFinished', { id })
-    );
+ipcMain.on('uninstall', async (event, { id, fileName }) => {
+    const modPath = store.get('modPath');
+
+    fs.unlink(path.resolve(modPath, fileName), () => {
+        const installedMods = store.get('installedMods');
+        store.set(
+            'installedMods',
+            installedMods.filter((mod) => mod.id != id)
+        );
+
+        event.reply('uninstall-finished', id);
+    });
 });
 
 ipcMain.on('move-mods', (event, { from, to }) => {
