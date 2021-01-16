@@ -503,26 +503,25 @@ viewHeader page updateStatus =
 
         _ ->
             el
-                [ Background.color colors.backgroundColorful
-                , width fill
+                [ width fill
+                , Background.color colors.backgroundColorful
                 ]
-                (el [ centerX ]
-                    (row
-                        [ height fill
-                        , width sizes.content
-                        , centerY
-                        , spaceEvenly
-                        , paddingEach { edges | top = 12, bottom = 12 }
+                (row
+                    [ width sizes.content
+                    , height fill
+                    , centerX
+                    , centerY
+                    , spaceEvenly
+                    , paddingEach { edges | top = 12, bottom = 12 }
+                    ]
+                    [ viewLogo
+                    , row [ spacing 12 ]
+                        [ viewUpdateButton updateStatus
+                        , viewSearchLink
+                        , viewInstalledLink
+                        , viewSettingsLink
                         ]
-                        [ viewLogo
-                        , row [ spacing 12 ]
-                            [ viewUpdateButton updateStatus
-                            , viewSearchLink
-                            , viewInstalledLink
-                            , viewSettingsLink
-                            ]
-                        ]
-                    )
+                    ]
                 )
 
 
