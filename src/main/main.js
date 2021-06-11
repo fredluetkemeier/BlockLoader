@@ -9,7 +9,6 @@ const Store = require('./store');
 
 const isDev = require('electron-is-dev');
 
-let PORT;
 let startupWindow;
 let mainWindow;
 
@@ -34,10 +33,7 @@ const store = new Store({
 app.whenReady()
     .then(createStartupWindow)
     .then(() => findAPortNotInUse(3000, 9000))
-    .then((port) => {
-        PORT = port;
-    })
-    .then(() => startServer(PORT))
+    .then(startServer)
     .then(createMainWindow);
 
 // ------
@@ -63,7 +59,7 @@ function createStartupWindow() {
     });
 }
 
-function createMainWindow() {
+function createMainWindow(port) {
     mainWindow = new BrowserWindow({
         width: 1000,
         height: 720,
@@ -75,7 +71,7 @@ function createMainWindow() {
         movable: true,
     });
 
-    mainWindow.loadURL(`http://localhost:${PORT}`);
+    mainWindow.loadURL(`http://localhost:${port}`);
 
     mainWindow.once('ready-to-show', () => {
         startupWindow.close();
