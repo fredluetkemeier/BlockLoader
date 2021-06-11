@@ -1,4 +1,11 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const {
+    app,
+    BrowserWindow,
+    ipcMain,
+    dialog,
+    contextBridge,
+    ipcRenderer,
+} = require('electron');
 const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const fs = require('fs');
@@ -33,8 +40,11 @@ const store = new Store({
 app.whenReady()
     .then(createStartupWindow)
     .then(() => findAPortNotInUse(3000, 9000))
-    .then(startServer)
-    .then(createMainWindow);
+    .then((port) => {
+        startServer(port);
+        return port;
+    })
+    .then((port) => createMainWindow(port));
 
 // ------
 // WINDOWS
@@ -64,7 +74,8 @@ function createMainWindow(port) {
         width: 1000,
         height: 720,
         webPreferences: {
-            nodeIntegration: true,
+            contextIsolation: true,
+            preload: path.join(__dirname, './preload.js'),
         },
         show: false,
         frame: false,

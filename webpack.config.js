@@ -16,7 +16,6 @@ module.exports = () => {
             publicPath: '/dist',
             filename: '[name].[contenthash].js',
         },
-        target: 'electron-renderer',
         module: {
             rules: [
                 {

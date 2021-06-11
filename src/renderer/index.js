@@ -1,5 +1,6 @@
 import { Elm } from './Main';
-import { ipcRenderer } from 'electron';
+
+const ipcRenderer = window.ipcRenderer;
 
 // ------
 // STARTUP
