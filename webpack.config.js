@@ -7,7 +7,7 @@ module.exports = () => {
 
     return {
         mode: isDev ? 'development' : 'production',
-        cache: isDev ? true : false,
+        cache: isDev,
         entry: {
             app: './src/renderer/index.js',
         },
